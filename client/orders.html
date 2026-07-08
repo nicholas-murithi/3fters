@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Orders — 3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><a href="../index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main style="max-width:900px;margin:0 auto;padding:40px 20px">
+  <h1 style="margin-bottom:30px">My Orders</h1>
+
+  <div id="ordersList">
+    <div class="loading-state">Loading your orders...</div>
+  </div>
+</main>
+
+<script type="module">
+  import { updateNav, protectPage, getToken } from './js/auth.js';
+
+  protectPage();
+  updateNav();
+
+  const API   = 'http://localhost:5000/api';
+  const token = getToken();
+
+  async function loadOrders() {
+    const container = document.getElementById('ordersList');
+
+    try {
+      const res    = await fetch(`${API}/orders/my-orders`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const orders = await res.json();
+
+      if (!orders.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>You have no orders yet.</p>
+            <a href="../index.html" class="auth-btn"
+              style="display:inline-block;margin-top:15px;text-decoration:none">
+              Start Shopping
+            </a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = orders.map(order => `
+        <div style="background:white;border-radius:20px;padding:25px;margin-bottom:20px">
+          <div style="display:flex;gap:20px;align-items:center">
+            <img
+              src="${order.listings?.images?.[0] || 'eimages/placeholder.png'}"
+              style="width:80px;height:80px;border-radius:12px;object-fit:cover"
+            >
+            <div style="flex:1">
+              <h4 style="margin-bottom:5px">${order.listings?.title || 'Item'}</h4>
+              <p style="font-size:13px;color:#777;margin-bottom:5px">
+                Seller: ${order.profiles?.full_name || '—'}
+              </p>
+              <p style="font-weight:600">
+                KSh ${Number(order.amount).toLocaleString()}
+              </p>
+            </div>
+            <div style="text-align:right">
+              <span class="badge ${order.status}">${order.status}</span>
+              <p style="font-size:12px;color:#777;margin-top:8px">
+                ${new Date(order.created_at).toLocaleDateString('en-KE', {
+                  day: 'numeric', month: 'short', year: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
+
+          <!-- ORDER TRACKING STEPS -->
+          <div style="margin-top:20px">
+            <div style="display:flex;justify-content:space-between;position:relative">
+              <div style="position:absolute;top:12px;left:0;right:0;height:2px;background:#eee;z-index:0"></div>
+
+              ${['pending','paid','shipped','delivered'].map(step => `
+                <div style="text-align:center;position:relative;z-index:1">
+                  <div style="
+                    width:24px;height:24px;border-radius:50%;
+                    background:${isStepDone(order.status, step) ? 'black' : '#eee'};
+                    color:${isStepDone(order.status, step) ? 'white' : '#aaa'};
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:12px;margin:0 auto 6px;
+                  ">
+                    ${isStepDone(order.status, step) ? '✓' : ''}
+                  </div>
+                  <p style="font-size:11px;color:${isStepDone(order.status, step) ? '#111' : '#aaa'};
+                    text-transform:capitalize">
+                    ${step}
+                  </p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          ${order.mpesa_code ? `
+            <div style="margin-top:15px;padding:10px 15px;background:#f8f5f2;
+              border-radius:10px;font-size:13px;color:#555">
+              M-Pesa Code: <strong>${order.mpesa_code}</strong>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
+    } catch (err) {
+      container.innerHTML = '<div class="empty-state">Could not load orders. Is the server running?</div>';
+    }
+  }
+
+  // Check if a step is completed based on current status
+  function isStepDone(currentStatus, step) {
+    const steps = ['pending', 'paid', 'shipped', 'delivered'];
+    return steps.indexOf(currentStatus) >= steps.indexOf(step);
+  }
+
+  // Make function available globally
+  window.isStepDone = isStepDone;
+
+  loadOrders();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "name": "ecomwebsite",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "client": "live-server --port=3000 --open=client/register.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicholas-murithi/ecomwebsite.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nicholas-murithi/ecomwebsite/issues"
+  },
+  "homepage": "https://github.com/nicholas-murithi/ecomwebsite#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "africastalking": "^0.7.9",
+    "axios": "^1.18.1",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "nodemon": "^3.1.14"
+  }
+}

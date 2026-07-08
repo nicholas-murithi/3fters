@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Item — 3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/listing.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+  <div class="logo"><a href="index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main class="listing-main" id="listingDetail">
+
+  <div class="listing-grid">
+
+    <!-- IMAGE GALLERY -->
+    <div class="listing-images">
+      <img id="mainImage" src="eimages/placeholder.png" alt="Product image" class="main-img">
+      <div class="thumbs" id="thumbsContainer"></div>
+    </div>
+
+    <!-- LISTING INFO -->
+    <div class="listing-info">
+
+      <div class="listing-badges">
+        <span class="badge-category" id="listingCategory">—</span>
+        <span class="badge-condition" id="listingCondition">—</span>
+      </div>
+
+      <h1 id="listingTitle">Loading...</h1>
+      <p class="listing-price" id="listingPrice">KSh —</p>
+
+      <div class="listing-meta">
+        <div class="meta-item">
+          <span>Size</span>
+          <strong id="listingSize">—</strong>
+        </div>
+        <div class="meta-item">
+          <span>Condition</span>
+          <strong id="listingCondition2">—</strong>
+        </div>
+      </div>
+
+      <div class="listing-desc">
+        <h4>Description</h4>
+        <p id="listingDesc">—</p>
+      </div>
+
+      <!-- SELLER INFO -->
+      <div class="seller-card">
+        <div class="seller-avatar">👤</div>
+        <div>
+          <strong id="sellerName">—</strong>
+          <p id="sellerLocation">—</p>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="listing-actions">
+        <button class="btn-primary" id="addToCartBtn">Add to Cart</button>
+        <button class="btn-secondary" id="buyNowBtn">Buy Now</button>
+      </div>
+
+      <!-- SAFETY NOTE -->
+      <div class="safety-note">
+         Pay securely via M-Pesa at checkout. Never pay outside the platform.
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script type="module">
+  import { updateNav } from './js/auth.js';
+  import { loadSingleListing, addToCart } from './js/listings.js';
+
+  updateNav();
+  loadSingleListing();
+
+  document.getElementById('addToCartBtn').addEventListener('click', () => {
+    const item = window.__currentListing;
+    if (item) addToCart(item.id);
+  });
+
+  document.getElementById('buyNowBtn').addEventListener('click', () => {
+    const item = window.__currentListing;
+    if (item) {
+      addToCart(item.id);
+      window.location.href = 'checkout.html';
+    }
+  });
+</script>
+
+</body>
+</html>

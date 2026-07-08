@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart — 3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><a href="/index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main class="cart-main">
+  <h1>Your Cart</h1>
+
+  <div class="cart-grid">
+    <div id="cartItems">
+      <div class="loading-state">Loading cart...</div>
+    </div>
+
+    <div class="cart-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-row">
+        <span>Items (<span id="cartCount">0</span>)</span>
+        <span id="cartSubtotal">KSh 0</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery</span>
+        <span>Calculated at checkout</span>
+      </div>
+      <div class="summary-total">
+        <strong>Total</strong>
+        <strong id="cartTotal">KSh 0</strong>
+      </div>
+      <button class="auth-btn" id="checkoutBtn">Proceed to Checkout</button>
+      <a href="/index.html" class="continue-shopping">← Continue Shopping</a>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { updateNav, protectPage, getToken } from './js/auth.js';
+
+  protectPage();
+  updateNav();
+
+  const API   = 'http://localhost:5000/api';
+  const token = getToken();
+
+  async function loadCart() {
+    const cartIds   = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
+    const container = document.getElementById('cartItems');
+
+    if (!cartIds.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <p>Your cart is empty.</p>
+          <a href="/index.html" class="auth-btn"
+            style="display:inline-block;margin-top:15px;text-decoration:none">
+            Browse Thrift Finds
+          </a>
+        </div>`;
+      document.getElementById('checkoutBtn').disabled = true;
+      return;
+    }
+
+    const items = await Promise.all(
+      cartIds.map(item =>
+        fetch(`${API}/listings/${item.id}`)
+          .then(r => r.json())
+          .catch(() => null)
+      )
+    );
+
+    const validItems = items.filter(Boolean);
+    let total = 0;
+
+    container.innerHTML = validItems.map(item => {
+      total += Number(item.price);
+      return `
+        <div class="cart-item">
+          <img
+            src="${item.images?.[0] || '/eimages/placeholder.png'}"
+            alt="${item.title}"
+          >
+          <div class="cart-item-info">
+            <h4>${item.title}</h4>
+            <p>${item.size ? 'Size ' + item.size : ''} · ${item.condition}</p>
+            <p class="price">KSh ${Number(item.price).toLocaleString()}</p>
+          </div>
+          <button class="remove-btn" onclick="removeFromCart('${item.id}')">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('cartCount').textContent    = validItems.length;
+    document.getElementById('cartSubtotal').textContent = `KSh ${total.toLocaleString()}`;
+    document.getElementById('cartTotal').textContent    = `KSh ${total.toLocaleString()}`;
+  }
+
+  window.removeFromCart = function(id) {
+    let cart = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
+    cart = cart.filter(i => i.id !== id);
+    localStorage.setItem('3fters_cart', JSON.stringify(cart));
+    loadCart();
+  };
+
+  document.getElementById('checkoutBtn').addEventListener('click', () => {
+    window.location.href = '/client/checkout.html';
+  });
+
+  loadCart();
+</script>
+
+</body>
+</html>

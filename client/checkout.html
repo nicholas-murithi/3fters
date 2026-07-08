@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout — 3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><a href="../index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main style="max-width:900px;margin:0 auto;padding:40px 20px">
+  <h1 style="margin-bottom:10px">Checkout</h1>
+  <p style="color:#777;margin-bottom:30px;font-size:14px">
+    Complete your order securely via M-Pesa
+  </p>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:30px">
+
+    <!-- ORDER SUMMARY -->
+    <section>
+      <h2 style="margin-bottom:20px;font-size:18px">Order Summary</h2>
+      <div id="checkoutItems"></div>
+
+      <div class="summary-total" style="margin-top:15px;padding-top:15px;border-top:2px solid #eee">
+        <strong>Total</strong>
+        <strong id="checkoutTotal" style="font-size:20px">KSh 0</strong>
+      </div>
+
+      <!-- SECURITY NOTE -->
+      <div style="margin-top:20px;padding:15px;background:#f8f5f2;border-radius:12px;
+        border-left:3px solid #8b5e3c;font-size:13px;color:#555;line-height:1.6">
+        🔒 <strong>Secure Payment</strong><br>
+        Your payment is processed securely via M-Pesa.
+        Never share your M-Pesa PIN with anyone.
+        3FTERS will never ask for your PIN.
+      </div>
+    </section>
+
+    <!-- PAYMENT FORM -->
+    <section style="background:white;padding:25px;border-radius:20px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.06)">
+      <h2 style="margin-bottom:5px;font-size:18px">Pay with M-Pesa</h2>
+      <p style="font-size:13px;color:#777;margin-bottom:20px">
+        You will receive an STK push on your phone
+      </p>
+
+      <div class="form-group">
+        <label>Delivery Address</label>
+        <input type="text" id="deliveryAddress"
+          placeholder="e.g. Nairobi CBD, Tom Mboya Street">
+      </div>
+
+      <div class="form-group">
+        <label>M-Pesa Phone Number</label>
+        <input type="tel" id="mpesaPhone" placeholder="0712345678" maxlength="12">
+        <small style="color:#777;font-size:12px;margin-top:5px;display:block">
+          Enter the number registered with M-Pesa
+        </small>
+      </div>
+
+      <button class="auth-btn" id="payBtn">
+         Pay Now via M-Pesa
+      </button>
+
+      <!-- PAYMENT STATUS -->
+      <div id="paymentStatus" style="display:none;margin-top:15px;
+        padding:15px;border-radius:12px;font-size:14px;line-height:1.6">
+      </div>
+
+      <!-- STEPS -->
+      <div style="margin-top:20px;padding:15px;background:#f9f9f9;
+        border-radius:12px;font-size:12px;color:#777">
+        <strong style="color:#111;display:block;margin-bottom:8px">
+          How M-Pesa payment works:
+        </strong>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span>1️⃣ Click Pay Now</span>
+          <span>2️⃣ Check your phone for M-Pesa prompt</span>
+          <span>3️⃣ Enter your M-Pesa PIN</span>
+          <span>4️⃣ You'll get an SMS confirmation</span>
+          <span>5️⃣ Seller ships your item</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script type="module">
+  import { protectPage, updateNav, getToken } from './js/auth.js';
+
+  protectPage();
+  updateNav();
+
+  const API   = 'http://localhost:5000/api';
+  const token = getToken();
+  const cart  = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
+
+  let grandTotal = 0;
+  const itemsEl  = document.getElementById('checkoutItems');
+  const totalEl  = document.getElementById('checkoutTotal');
+
+  // ========================
+  // LOAD CART ITEMS
+  // ========================
+  async function loadCheckout() {
+    if (!cart.length) {
+      itemsEl.innerHTML = `
+        <div class="empty-state" style="padding:30px 0">
+          <p>Your cart is empty.</p>
+          <a href="../index.html" style="color:#8b5e3c;font-weight:600">
+            ← Browse thrift finds
+          </a>
+        </div>`;
+      document.getElementById('payBtn').disabled = true;
+      return;
+    }
+
+    const items = await Promise.all(
+      cart.map(c =>
+        fetch(`${API}/listings/${c.id}`)
+          .then(r => r.json())
+          .catch(() => null)
+      )
+    );
+
+    const valid = items.filter(Boolean);
+
+    valid.forEach(item => {
+      grandTotal += Number(item.price);
+      itemsEl.innerHTML += `
+        <div style="display:flex;gap:12px;align-items:center;
+          padding:12px;background:#f9f9f9;border-radius:12px;margin-bottom:10px">
+          <img
+            src="${item.images?.[0] || '../eimages/placeholder.png'}"
+            alt="${item.title}"
+            style="width:65px;height:65px;border-radius:10px;object-fit:cover"
+          >
+          <div style="flex:1">
+            <h4 style="font-size:14px;margin-bottom:4px">${item.title}</h4>
+            <p style="font-size:12px;color:#777">
+              ${item.size ? 'Size ' + item.size + ' · ' : ''}${item.condition}
+            </p>
+            <p style="font-weight:600;color:#111;margin-top:4px">
+              KSh ${Number(item.price).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      `;
+    });
+
+    totalEl.textContent = `KSh ${grandTotal.toLocaleString()}`;
+  }
+
+  loadCheckout();
+
+  // ========================
+  // PAY BUTTON
+  // ========================
+  document.getElementById('payBtn').addEventListener('click', async () => {
+    const phone    = document.getElementById('mpesaPhone').value.trim();
+    const address  = document.getElementById('deliveryAddress').value.trim();
+    const btn      = document.getElementById('payBtn');
+    const statusEl = document.getElementById('paymentStatus');
+
+    // Validate
+    if (!address) {
+      alert('Please enter your delivery address');
+      return;
+    }
+
+    if (!phone) {
+      alert('Please enter your M-Pesa phone number');
+      return;
+    }
+
+    if (phone.length < 9) {
+      alert('Please enter a valid phone number e.g. 0712345678');
+      return;
+    }
+
+    // Format phone: 0712... → 254712...
+    let formatted = phone;
+    if (formatted.startsWith('0')) {
+      formatted = '254' + formatted.slice(1);
+    }
+    if (formatted.startsWith('+')) {
+      formatted = formatted.slice(1);
+    }
+
+    btn.textContent = '⏳ Sending M-Pesa prompt...';
+    btn.disabled    = true;
+    statusEl.style.display = 'none';
+
+    try {
+      // Step 1 — Create orders for each cart item
+      for (const item of cart) {
+        const orderRes = await fetch(`${API}/orders`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            listing_id:       item.id,
+            delivery_address: address
+          })
+        });
+
+        if (!orderRes.ok) {
+          const err = await orderRes.json();
+          console.warn('Order error:', err);
+        }
+      }
+
+      // Step 2 — Trigger STK push
+      const res = await fetch(`${API}/payments/mpesa/stk-push`, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          phone:  formatted,
+          amount: grandTotal
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Show success message
+        statusEl.style.display    = 'block';
+        statusEl.style.background = '#f0fdf4';
+        statusEl.style.color      = '#16a34a';
+        statusEl.innerHTML = `
+          ✅ M-Pesa prompt sent to <strong>${phone}</strong>!<br>
+          <small style="color:#555">
+            Enter your M-Pesa PIN on your phone to complete payment.
+          </small>
+        `;
+
+        btn.textContent = '⏳ Waiting for payment...';
+
+        // Step 3 — Poll for payment confirmation
+        const checkoutId = data.checkoutRequestId;
+        let attempts     = 0;
+
+        const poll = setInterval(async () => {
+          attempts++;
+
+          try {
+            const statusRes = await fetch(`${API}/payments/mpesa/check-status`, {
+              method:  'POST',
+              headers: {
+                'Content-Type':  'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                checkout_request_id: checkoutId
+              })
+            });
+
+            const statusData = await statusRes.json();
+            console.log('Payment status:', statusData);
+
+            // ResultCode 0 = success
+            if (statusData.ResultCode === '0' || statusData.ResultCode === 0) {
+              clearInterval(poll);
+              localStorage.removeItem('3fters_cart');
+
+              statusEl.innerHTML = `
+                ✅ <strong>Payment confirmed!</strong><br>
+                Your order is being processed.
+                The seller will ship your item soon.<br>
+                <small style="color:#555">
+                  You will receive an SMS confirmation shortly.
+                </small>
+              `;
+
+              btn.textContent = '✅ Payment Complete!';
+
+              setTimeout(() => {
+                window.location.href = 'orders.html';
+              }, 3000);
+            }
+
+            // Stop after 12 attempts (1 minute)
+            if (attempts >= 12) {
+              clearInterval(poll);
+              statusEl.innerHTML = `
+                ⏳ Payment is taking longer than expected.<br>
+                <small style="color:#555">
+                  Check your orders page to confirm payment status.
+                </small>
+              `;
+              btn.textContent = 'View My Orders';
+              btn.disabled    = false;
+              btn.onclick     = () => window.location.href = 'orders.html';
+            }
+
+          } catch (pollErr) {
+            console.log('Poll error:', pollErr);
+          }
+        }, 5000); // Check every 5 seconds
+
+      } else {
+        throw new Error(data.error || data.details || 'STK push failed');
+      }
+
+    } catch (err) {
+      console.error('Payment error:', err);
+      btn.textContent = '🔄 Try Again';
+      btn.disabled    = false;
+
+      statusEl.style.display    = 'block';
+      statusEl.style.background = '#fdf0f0';
+      statusEl.style.color      = '#c0392b';
+      statusEl.innerHTML = `
+        ❌ ${err.message || 'Payment failed. Please try again.'}<br>
+        <small style="color:#777">
+          Make sure your server is running and M-Pesa keys are correct.
+        </small>
+      `;
+    }
+  });
+</script>
+
+</body>
+</html>
