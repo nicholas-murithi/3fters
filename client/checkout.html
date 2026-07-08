@@ -99,7 +99,10 @@
   protectPage();
   updateNav();
 
-  const API   = 'http://localhost:5000/api';
+  const API = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://threefters.onrender.com/api';
   const token = getToken();
   const cart  = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
 
@@ -195,7 +198,7 @@
       formatted = formatted.slice(1);
     }
 
-    btn.textContent = '⏳ Sending M-Pesa prompt...';
+    btn.textContent = ' Sending M-Pesa prompt...';
     btn.disabled    = true;
     statusEl.style.display = 'none';
 
@@ -247,7 +250,7 @@
           </small>
         `;
 
-        btn.textContent = '⏳ Waiting for payment...';
+        btn.textContent = ' Waiting for payment...';
 
         // Step 3 — Poll for payment confirmation
         const checkoutId = data.checkoutRequestId;
@@ -312,7 +315,7 @@
         }, 5000); // Check every 5 seconds
 
       } else {
-        throw new Error(data.error || data.details || 'STK push failed');
+        throw new Error(data.error || data.details || 'failed');
       }
 
     } catch (err) {
@@ -326,7 +329,7 @@
       statusEl.innerHTML = `
         ❌ ${err.message || 'Payment failed. Please try again.'}<br>
         <small style="color:#777">
-          Make sure your server is running and M-Pesa keys are correct.
+          if the issue persists, contact support at support@threefters.com
         </small>
       `;
     }

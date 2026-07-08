@@ -3,7 +3,10 @@ import { showToast } from './listings.js';
 
 protectSeller();
 
-const API     = 'http://localhost:5000/api';
+const API = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://threefters.onrender.com/api';
 const token   = () => localStorage.getItem('3fters_token');
 const headers = () => ({
   'Content-Type': 'application/json',
