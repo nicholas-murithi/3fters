@@ -29,7 +29,7 @@ body::before {
       rgba(252, 250, 248, 0.75),
       rgba(206, 191, 126, 0.75)
     ),
-    url("eimages/background.png");
+    url("../eimages/background.png");
   background-size: cover;
   background-position: center;
   animation: bgFloat 30s ease-in-out infinite;
