@@ -8,6 +8,7 @@ const orderRoutes   = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const uploadRoutes  = require('./routes/upload');
 const adminRoutes   = require('./routes/admin');
+const reviewRoutes  = require('./routes/reviews');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/orders',   orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/upload',   uploadRoutes);
 app.use('/api/admin',    adminRoutes);
+app.use('/api/reviews',  reviewRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: '3FTERS API is running on Neon PostgreSQL' });

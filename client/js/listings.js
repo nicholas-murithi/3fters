@@ -1,3 +1,5 @@
+import { formatPrice } from './preferences.js';
+
 const API = window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
@@ -11,12 +13,18 @@ export async function loadListings() {
   const category  = document.getElementById('filterCategory')?.value || '';
   const size      = document.getElementById('filterSize')?.value || '';
   const condition = document.getElementById('filterCondition')?.value || '';
+  const minPrice  = document.getElementById('filterMinPrice')?.value || '';
+  const maxPrice  = document.getElementById('filterMaxPrice')?.value || '';
+  const sort      = document.getElementById('filterSort')?.value || '';
 
   const params = new URLSearchParams();
   if (search)    params.append('search', search);
   if (category)  params.append('category', category);
   if (size)      params.append('size', size);
   if (condition) params.append('condition', condition);
+  if (minPrice)  params.append('min_price', minPrice);
+  if (maxPrice)  params.append('max_price', maxPrice);
+  if (sort)      params.append('sort', sort);
 
   const grid = document.getElementById('listingsGrid');
   if (!grid) return;
@@ -48,7 +56,10 @@ export async function loadListings() {
         >♡</span>
         <div class="card-badge">${item.condition}</div>
         <h4>${item.title}</h4>
-        <p class="price">KSh ${Number(item.price).toLocaleString()}</p>
+        ${Number(item.review_count) > 0 ? `
+          <p style="font-size:12px;color:#e8a33d;margin:2px 0">★ ${item.avg_rating} (${item.review_count})</p>
+        ` : ''}
+        <p class="price">${formatPrice(item.price)}</p>
         <p class="card-meta">${item.size ? 'Size ' + item.size : ''} · ${item.location || 'Kenya'}</p>
         <button
           class="add-to-cart-btn"
@@ -90,7 +101,7 @@ export async function loadSingleListing() {
     `).join('');
 
     document.getElementById('listingTitle').textContent     = item.title;
-    document.getElementById('listingPrice').textContent     = `KSh ${Number(item.price).toLocaleString()}`;
+    document.getElementById('listingPrice').textContent     = formatPrice(item.price);
     document.getElementById('listingCondition').textContent = item.condition;
     document.getElementById('listingSize').textContent      = item.size || 'One size';
     document.getElementById('listingCategory').textContent  = item.category;
@@ -100,9 +111,48 @@ export async function loadSingleListing() {
 
     window.__currentListing = item;
 
+    loadReviews(id);
+
   } catch (err) {
     const detail = document.getElementById('listingDetail');
     if (detail) detail.innerHTML = '<p class="empty-state">Item not found.</p>';
+  }
+}
+
+// ========================
+// LOAD REVIEWS FOR A LISTING
+// ========================
+export async function loadReviews(listingId) {
+  const summaryEl = document.getElementById('listingRatingSummary');
+  const container = document.getElementById('reviewsContainer');
+  if (!container) return;
+
+  try {
+    const res  = await fetch(`${API}/reviews/listing/${listingId}`);
+    const data = await res.json();
+
+    if (summaryEl) {
+      summaryEl.textContent = data.total > 0
+        ? `★ ${data.avg_rating} (${data.total} review${data.total === 1 ? '' : 's'})`
+        : 'No reviews yet';
+    }
+
+    if (!data.reviews.length) {
+      container.innerHTML = '<p style="font-size:13px;color:#777">No reviews yet for this item.</p>';
+      return;
+    }
+
+    container.innerHTML = data.reviews.map(r => `
+      <div style="border-bottom:1px solid #eee;padding:10px 0">
+        <div style="display:flex;justify-content:space-between">
+          <strong style="font-size:13px">${r.buyer_name}</strong>
+          <span style="color:#e8a33d;font-size:13px">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+        </div>
+        ${r.comment ? `<p style="font-size:13px;color:#555;margin-top:4px">${r.comment}</p>` : ''}
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<p style="font-size:13px;color:#777">Could not load reviews.</p>';
   }
 }
 
@@ -184,3 +234,8 @@ export function showToast(message) {
 
 window.addToCart      = addToCart;
 window.toggleWishlist = toggleWishlist;
+
+window.addEventListener('3fters:currency-changed', () => {
+  loadListings();
+  if (window.__currentListing) loadSingleListing();
+});

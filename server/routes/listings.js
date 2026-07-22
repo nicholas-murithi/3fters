@@ -5,13 +5,19 @@ const protect = require('../middleware/authMiddleware');
 
 // GET all listings with filters
 router.get('/', async (req, res) => {
-  const { category, size, condition, search } = req.query;
+  const { category, size, condition, search, min_price, max_price, sort } = req.query;
 
   let query  = `
     SELECT l.*, 
-           u.full_name, u.avatar_url, u.location
+           u.full_name, u.avatar_url, u.location,
+           COALESCE(r.avg_rating, 0) as avg_rating,
+           COALESCE(r.review_count, 0) as review_count
     FROM listings l
     JOIN users u ON l.seller_id = u.id
+    LEFT JOIN (
+      SELECT listing_id, AVG(rating)::numeric(2,1) as avg_rating, COUNT(*) as review_count
+      FROM reviews GROUP BY listing_id
+    ) r ON r.listing_id = l.id
     WHERE l.status = 'available'
   `;
   const params = [];
@@ -21,8 +27,16 @@ router.get('/', async (req, res) => {
   if (size)      { query += ` AND l.size = $${i++}`;                  params.push(size); }
   if (condition) { query += ` AND l.condition = $${i++}`;             params.push(condition); }
   if (search)    { query += ` AND l.title ILIKE $${i++}`;             params.push(`%${search}%`); }
+  if (min_price) { query += ` AND l.price >= $${i++}`;                params.push(min_price); }
+  if (max_price) { query += ` AND l.price <= $${i++}`;                params.push(max_price); }
 
-  query += ' ORDER BY l.created_at DESC';
+  const sortMap = {
+    newest:      'l.created_at DESC',
+    price_low:   'l.price ASC',
+    price_high:  'l.price DESC',
+    top_rated:   'avg_rating DESC NULLS LAST',
+  };
+  query += ` ORDER BY ${sortMap[sort] || sortMap.newest}`;
 
   try {
     const result = await pool.query(query, params);

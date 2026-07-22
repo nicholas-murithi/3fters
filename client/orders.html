@@ -113,13 +113,100 @@
               M-Pesa Code: <strong>${order.mpesa_code}</strong>
             </div>
           ` : ''}
+
+          ${order.status === 'delivered' ? `
+            <div id="reviewSlot-${order.id}" style="margin-top:15px"></div>
+          ` : ''}
         </div>
       `).join('');
+
+      // After rendering, fill in review slots for delivered orders
+      orders.filter(o => o.status === 'delivered').forEach(o => renderReviewSlot(o.id));
 
     } catch (err) {
       container.innerHTML = '<div class="empty-state">Could not load orders. Is the server running?</div>';
     }
   }
+
+  // Show either "leave a review" form or a submitted state for delivered orders
+  async function renderReviewSlot(orderId) {
+    const slot = document.getElementById(`reviewSlot-${orderId}`);
+    if (!slot) return;
+
+    try {
+      const res  = await fetch(`${API}/reviews/can-review/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+
+      if (!data.canReview) {
+        slot.innerHTML = `<p style="font-size:13px;color:#777">✓ Review submitted</p>`;
+        return;
+      }
+
+      slot.innerHTML = `
+        <div style="border-top:1px solid #eee;padding-top:15px">
+          <p style="font-size:13px;font-weight:600;margin-bottom:8px">Rate this purchase</p>
+          <div id="stars-${orderId}" style="font-size:22px;cursor:pointer;margin-bottom:8px">
+            ${[1,2,3,4,5].map(n => `<span data-star="${n}" style="opacity:0.3">★</span>`).join('')}
+          </div>
+          <textarea id="comment-${orderId}" placeholder="Optional comment..."
+            style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;font-family:inherit;font-size:13px;min-height:50px"></textarea>
+          <button onclick="submitReview('${orderId}')"
+            style="margin-top:8px;background:black;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px">
+            Submit Review
+          </button>
+        </div>
+      `;
+
+      let selected = 0;
+      const starsEl = document.getElementById(`stars-${orderId}`);
+      starsEl.querySelectorAll('span').forEach(star => {
+        star.addEventListener('click', () => {
+          selected = Number(star.dataset.star);
+          starsEl.querySelectorAll('span').forEach(s => {
+            s.style.opacity = Number(s.dataset.star) <= selected ? '1' : '0.3';
+          });
+          starsEl.dataset.selected = selected;
+        });
+      });
+    } catch (err) {
+      // Silently skip if reviews check fails, non-critical
+    }
+  }
+
+  window.submitReview = async function(orderId) {
+    const starsEl = document.getElementById(`stars-${orderId}`);
+    const rating  = Number(starsEl.dataset.selected || 0);
+    const comment = document.getElementById(`comment-${orderId}`).value.trim();
+
+    if (!rating) {
+      alert('Please select a star rating');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ order_id: orderId, rating, comment })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'Could not submit review');
+        return;
+      }
+
+      document.getElementById(`reviewSlot-${orderId}`).innerHTML =
+        `<p style="font-size:13px;color:#777">✓ Review submitted</p>`;
+    } catch (err) {
+      alert('Network error submitting review');
+    }
+  };
 
   // Check if a step is completed based on current status
   function isStepDone(currentStatus, step) {

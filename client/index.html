@@ -15,14 +15,20 @@
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="top-left">
-    <span>English</span>
-    <span>KSh</span>
+    <select id="langSelect" aria-label="Select language">
+      <option value="en">English</option>
+      <option value="sw">Kiswahili</option>
+    </select>
+    <select id="currencySelect" aria-label="Select currency">
+      <option value="KES">KSh</option>
+      <option value="USD">USD</option>
+    </select>
   </div>
   <div class="top-right">
-    <a href="client/orders.html">Track Order</a>
-    <a href="client/about.html">About 3FTERS</a>
-    <a href="client/login.html">Log In</a>
-    <a href="client/register.html">Sign Up</a>
+    <a href="client/orders.html" data-i18n="trackOrder">Track Order</a>
+    <a href="client/about.html" data-i18n="about">About 3FTERS</a>
+    <a href="client/login.html" data-i18n="login">Log In</a>
+    <a href="client/register.html" data-i18n="signup">Sign Up</a>
   </div>
 </div>
 
@@ -140,7 +146,7 @@
 
     <!-- FILTER BAR -->
     <div class="filter-bar">
-      <input type="text" id="searchInput" placeholder="🔍 Search thrift finds...">
+      <input type="text" id="searchInput" placeholder="🔍 Search thrift finds..." data-i18n-placeholder="searchPlaceholder">
       <select id="filterCategory" style="display:none">
         <option value="">All</option>
         <option value="shoes">Shoes</option>
@@ -162,6 +168,14 @@
         <option value="like new">Like New</option>
         <option value="good">Good</option>
         <option value="fair">Fair</option>
+      </select>
+      <input type="number" id="filterMinPrice" placeholder="Min KSh" style="width:100px">
+      <input type="number" id="filterMaxPrice" placeholder="Max KSh" style="width:100px">
+      <select id="filterSort">
+        <option value="newest">Newest</option>
+        <option value="price_low">Price: Low to High</option>
+        <option value="price_high">Price: High to Low</option>
+        <option value="top_rated">Top Rated</option>
       </select>
     </div>
 
@@ -263,6 +277,7 @@
 <script type="module">
   import { updateNav, getUser } from './client/js/auth.js';
   import { loadListings, updateCartCount } from './client/js/listings.js';
+  import { initPreferenceSelectors } from './client/js/preferences.js';
 
   // ========================
   // INIT
@@ -270,6 +285,7 @@
   updateNav();
   updateCartCount();
   loadListings();
+  initPreferenceSelectors();
 
   // ========================
   // CATEGORY FILTER
@@ -286,7 +302,7 @@
   // SEARCH + FILTER
   // ========================
   let debounce;
-  ['searchInput', 'filterSize', 'filterCondition'].forEach(id => {
+  ['searchInput', 'filterSize', 'filterCondition', 'filterMinPrice', 'filterMaxPrice', 'filterSort'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => {
       clearTimeout(debounce);
       debounce = setTimeout(loadListings, 400);
