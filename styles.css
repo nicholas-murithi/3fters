@@ -136,6 +136,40 @@ body::before {
   display: block;
 }
 
+.dropdown-menu.open {
+  display: block;
+}
+
+/* Inside the mobile nav drawer, position the menu inline instead of
+   absolutely so it doesn't overflow the narrow drawer width */
+.mobile-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mobile-preferences .dropdown {
+  display: block;
+}
+
+.mobile-preferences .dropdown-trigger {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 15px;
+  justify-content: space-between;
+}
+
+.mobile-preferences .dropdown-menu {
+  position: static;
+  box-shadow: none;
+  border: 1px solid #eee;
+  margin-top: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
 /* HEADER */
 .header {
   display: flex;
@@ -157,27 +191,7 @@ body::before {
 @media (min-width: 769px) {
   .logo img { height: 34px; }
 }
-.desktop-nav {
-  display: none;
-}
 
-@media (min-width: 769px) {
-  .desktop-nav {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-  }
-  .desktop-nav a {
-    text-decoration: none;
-    color: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .desktop-nav a:hover {
-    opacity: 0.6;
-  }
-}
 /* HAMBURGER */
 .menu-toggle {
   display: none;

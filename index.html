@@ -25,9 +25,9 @@
     <div class="dropdown">
   <span class="dropdown-trigger"> KSh ▾</span>
   <div class="dropdown-menu">
-    <span data-currency="KES" class="active-option">🇰🇪 KSh — Kenyan Shilling</span>
-    <span data-currency="USD">🇺🇸 USD — US Dollar</span>
-    <span data-currency="GBP">🇬🇧 GBP — British Pound</span>
+    <span data-currency="KES" class="active-option">🇰🇪 KSh  Kenyan Shilling</span>
+    <span data-currency="USD">🇺🇸 USD US Dollar</span>
+    <span data-currency="GBP">🇬🇧 GBP British Pound</span>
   </div>
 </div>
   </div>
@@ -68,6 +68,25 @@
     <button class="close-menu" id="closeMenu" aria-label="Close navigation menu">✕</button>
   </div>
   <nav class="mobile-nav">
+    <h4>Preferences</h4>
+    <div class="mobile-preferences">
+      <div class="dropdown">
+        <span class="dropdown-trigger"> English ▾</span>
+        <div class="dropdown-menu">
+          <span data-lang="en" class="active-option">🇬🇧 English</span>
+          <span data-lang="sw">🇰🇪 Swahili</span>
+        </div>
+      </div>
+      <div class="dropdown">
+        <span class="dropdown-trigger"> KSh ▾</span>
+        <div class="dropdown-menu">
+          <span data-currency="KES" class="active-option">🇰🇪 KSh  Kenyan Shilling</span>
+          <span data-currency="USD">🇺🇸 USD US Dollar</span>
+          <span data-currency="GBP">🇬🇧 GBP British Pound</span>
+        </div>
+      </div>
+    </div>
+
     <h4>Shop</h4>
     <a href="#trending" data-i18n="allItems">All Thrift Items</a>
     <a href="#" onclick="filterByCategory(this,'shoes')" data-i18n="shoes">Thrifted Shoes</a>
@@ -79,8 +98,7 @@
     <div id="mobileNavAuth"></div>
     <a href="client/cart.html" data-i18n="myCart">🛒 My Cart</a>
     <a href="client/orders.html" data-i18n="myOrders">My Orders</a>
-    <a href="client/seller-dashboard.html" data-i18n="sellerDash">Seller Dashboard</a>
-    <a href="client/admin.html" data-i18n="adminPanel">Admin Panel</a>
+    <div id="mobileRoleLinks"></div>
 
     <h4>Info</h4>
     <a href="client/about.html" data-i18n="about">About 3FTERS</a>
@@ -292,9 +310,23 @@
   const user = getUser();
   const topBarAuth = document.getElementById('topBarAuth');
   const mobileNavAuth = document.getElementById('mobileNavAuth');
+  const mobileRoleLinks = document.getElementById('mobileRoleLinks');
+
   if (user) {
-    topBarAuth.innerHTML = ''; 
-    if (mobileNavAuth) mobileNavAuth.innerHTML = `<a href="client/admin.html">👤 ${user.full_name?.split(' ')[0]}</a>`;
+    topBarAuth.innerHTML = '';
+    if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${user.full_name?.split(' ')[0] || 'Account'}</span>`;
+
+    // Only show links that match the logged-in user's actual role
+    if (mobileRoleLinks) {
+      let links = '';
+      if (user.role === 'seller') {
+        links += `<a href="client/seller-dashboard.html" data-i18n="sellerDash">Seller Dashboard</a>`;
+      }
+      if (user.role === 'admin') {
+        links += `<a href="client/admin.html" data-i18n="adminPanel">Admin Panel</a>`;
+      }
+      mobileRoleLinks.innerHTML = links;
+    }
   } else {
     topBarAuth.innerHTML = `
       <a href="client/login.html">Log In</a>
@@ -304,6 +336,7 @@
       <a href="client/login.html">Log In</a>
       <a href="client/register.html">Sign Up</a>
     `;
+    if (mobileRoleLinks) mobileRoleLinks.innerHTML = '';
   }
 
   // Category filter
@@ -376,9 +409,8 @@
     card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
   });
 
-  // ========================
   // LANGUAGE + CURRENCY PREFERENCES
-  // ========================
+  
   initPreferenceSelectors();
 
   // Re-render the product grid whenever currency changes, so prices

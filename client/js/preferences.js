@@ -1,5 +1,4 @@
-// Approximate display-only conversion rates. Checkout/payment always happens in KES via M-Pesa —
-// this only affects how prices are *shown* to browsing users.
+// Approximate display-only conversion rates. Checkout/payment always happens in KES via M-Pesa, so these are just for showing the user what the price would be in their preferred currency.
 const RATES = {
   KES: 1,
   USD: 1 / 129,   // 1 KES ≈ 0.00775 USD
@@ -7,7 +6,7 @@ const RATES = {
 };
 const SYMBOLS = { KES: 'KSh', USD: '$', GBP: '£' };
 
-// Dictionary for static UI strings. Extend as needed — anything with
+// Dictionary for static UI strings. Extend as needed  anything with
 // a matching data-i18n attribute in the HTML gets swapped automatically.
 const DICT = {
   en: {
@@ -79,7 +78,7 @@ const DICT = {
     faq:           'Maswali',
 
     heroTitle:    'Mitindo ya<br>Mitumba',
-    heroSubtitle: 'Nguo na viatu vya mitumba nafuu, vya kipekee, na endelevu — vilivyochaguliwa kwa ajili yako.',
+    heroSubtitle: 'Nguo na viatu vya mitumba nafuu, vya kipekee, na endelevu  vilivyochaguliwa kwa ajili yako.',
     heroCta:      'Nunua Bidhaa za Mitumba',
 
     inspirationTitle:    'Mawazo ya<br>Mitumba',
@@ -181,27 +180,45 @@ export function initPreferenceSelectors() {
     currSelect.addEventListener('change', () => setCurrency(currSelect.value));
   }
 
+  // Custom dropdown markup: click-to-toggle (works on touch/mobile, not just :hover)
+  document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = trigger.nextElementSibling;
+      const isOpen = menu.classList.contains('open');
+      // close any other open dropdowns first
+      document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+      if (!isOpen) menu.classList.add('open');
+    });
+  });
+  // tapping/clicking anywhere else closes any open dropdown
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
+
   // Custom dropdown markup: <span data-lang="sw">...</span> / <span data-currency="USD">...</span>
   document.querySelectorAll('[data-lang]').forEach(option => {
-    option.addEventListener('click', () => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
       const menu    = option.closest('.dropdown-menu');
       const trigger = option.closest('.dropdown')?.querySelector('.dropdown-trigger');
       menu?.querySelectorAll('span').forEach(s => s.classList.remove('active-option'));
       option.classList.add('active-option');
       if (trigger) trigger.textContent = option.textContent + ' ▾';
-      if (menu) { menu.style.display = 'none'; setTimeout(() => menu.style.display = '', 300); }
+      menu?.classList.remove('open');
       setLanguage(option.dataset.lang);
     });
   });
 
   document.querySelectorAll('[data-currency]').forEach(option => {
-    option.addEventListener('click', () => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
       const menu    = option.closest('.dropdown-menu');
       const trigger = option.closest('.dropdown')?.querySelector('.dropdown-trigger');
       menu?.querySelectorAll('span').forEach(s => s.classList.remove('active-option'));
       option.classList.add('active-option');
       if (trigger) trigger.textContent = option.textContent + ' ▾';
-      if (menu) { menu.style.display = 'none'; setTimeout(() => menu.style.display = '', 300); }
+      menu?.classList.remove('open');
       setCurrency(option.dataset.currency);
     });
   });

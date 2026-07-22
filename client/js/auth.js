@@ -3,9 +3,9 @@ const API = window.location.hostname === 'localhost' ||
   ? 'http://localhost:5000/api'
   : 'https://threefters.onrender.com/api';
 
-
+// ========================
 // REGISTER
-
+// ========================
 export async function register(email, password, metadata) {
   try {
     const controller = new AbortController();
@@ -42,9 +42,9 @@ export async function register(email, password, metadata) {
   }
 }
 
-
+// ========================
 // LOGIN
-
+// ========================
 export async function login(email, password) {
   try {
     const controller = new AbortController();
@@ -81,9 +81,9 @@ export async function login(email, password) {
   }
 }
 
-
+// ========================
 // LOGOUT
-
+// ========================
 export async function logout() {
   localStorage.removeItem('3fters_token');
   localStorage.removeItem('3fters_user');
@@ -91,9 +91,9 @@ export async function logout() {
   window.location.href = '/index.html';
 }
 
-
+// ========================
 // GET CURRENT USER
-
+// ========================
 export function getUser() {
   const user = localStorage.getItem('3fters_user');
   return user ? JSON.parse(user) : null;
@@ -103,9 +103,9 @@ export function getToken() {
   return localStorage.getItem('3fters_token');
 }
 
-
+// ========================
 // PROTECT PAGES
-
+// ========================
 export function protectPage() {
   if (!getToken()) window.location.href = '/client/login.html';
 }
@@ -116,8 +116,9 @@ export function protectSeller() {
   if (user.role !== 'seller') window.location.href = '/index.html';
 }
 
+// ========================
 // UPDATE NAV
-
+// ========================
 export function updateNav() {
   const user  = getUser();
   const navEl = document.getElementById('authNav');
@@ -143,9 +144,9 @@ export function updateNav() {
   }
 }
 
-
+// ========================
 // UPDATE CART COUNT
-
+// ========================
 export function updateCartCount() {
   const cart  = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
   const badge = document.getElementById('cartCount');
