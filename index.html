@@ -18,22 +18,22 @@
     <div class="dropdown">
       <span class="dropdown-trigger"> English ▾</span>
       <div class="dropdown-menu">
-        <span>🇬🇧 English</span>
-        <span>🇰🇪 Swahili</span>
+        <span data-lang="en" class="active-option">🇬🇧 English</span>
+        <span data-lang="sw">🇰🇪 Swahili</span>
       </div>
     </div>
     <div class="dropdown">
   <span class="dropdown-trigger"> KSh ▾</span>
   <div class="dropdown-menu">
-    <span data-currency="KSH" class="active-option">🇰🇪 KSh — Kenyan Shilling</span>
+    <span data-currency="KES" class="active-option">🇰🇪 KSh — Kenyan Shilling</span>
     <span data-currency="USD">🇺🇸 USD — US Dollar</span>
     <span data-currency="GBP">🇬🇧 GBP — British Pound</span>
   </div>
 </div>
   </div>
   <div class="top-right">
-    <a href="client/orders.html">Track Order</a>
-    <a href="client/about.html">About 3FTERS</a>
+    <a href="client/orders.html" data-i18n="trackOrder">Track Order</a>
+    <a href="client/about.html" data-i18n="about">About 3FTERS</a>
     <div id="topBarAuth"></div>
   </div>
 </div>
@@ -69,23 +69,23 @@
   </div>
   <nav class="mobile-nav">
     <h4>Shop</h4>
-    <a href="#trending">All Thrift Items</a>
-    <a href="#" onclick="filterByCategory(this,'shoes')">Thrifted Shoes</a>
-    <a href="#" onclick="filterByCategory(this,'tee')">Vintage T-Shirts</a>
-    <a href="#" onclick="filterByCategory(this,'jacket')">Jackets</a>
-    <a href="#" onclick="filterByCategory(this,'accessories')">Accessories</a>
+    <a href="#trending" data-i18n="allItems">All Thrift Items</a>
+    <a href="#" onclick="filterByCategory(this,'shoes')" data-i18n="shoes">Thrifted Shoes</a>
+    <a href="#" onclick="filterByCategory(this,'tee')" data-i18n="tees">Vintage T-Shirts</a>
+    <a href="#" onclick="filterByCategory(this,'jacket')" data-i18n="jackets">Jackets</a>
+    <a href="#" onclick="filterByCategory(this,'accessories')" data-i18n="accessories">Accessories</a>
 
     <h4>Account</h4>
     <div id="mobileNavAuth"></div>
-    <a href="client/cart.html">🛒 My Cart</a>
-    <a href="client/orders.html">My Orders</a>
-    <a href="client/seller-dashboard.html">Seller Dashboard</a>
-    <a href="client/admin.html">Admin Panel</a>
+    <a href="client/cart.html" data-i18n="myCart">🛒 My Cart</a>
+    <a href="client/orders.html" data-i18n="myOrders">My Orders</a>
+    <a href="client/seller-dashboard.html" data-i18n="sellerDash">Seller Dashboard</a>
+    <a href="client/admin.html" data-i18n="adminPanel">Admin Panel</a>
 
     <h4>Info</h4>
-    <a href="client/about.html">About 3FTERS</a>
-    <a href="#">Contact Us</a>
-    <a href="#">FAQ</a>
+    <a href="client/about.html" data-i18n="about">About 3FTERS</a>
+    <a href="#" data-i18n="contactUs">Contact Us</a>
+    <a href="#" data-i18n="faq">FAQ</a>
   </nav>
 </div>
 
@@ -101,9 +101,9 @@
       <div class="hero-overlay"></div>
       <!-- Content on top -->
       <div class="hero-content">
-        <h1>Thrifted<br>Style Finds</h1>
-        <p>Affordable, unique, and sustainable thrifted clothing and shoes curated just for you.</p>
-        <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})">
+        <h1 data-i18n="heroTitle">Thrifted<br>Style Finds</h1>
+        <p data-i18n="heroSubtitle">Affordable, unique, and sustainable thrifted clothing and shoes curated just for you.</p>
+        <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})" data-i18n="heroCta">
           Shop Thrift Finds
         </button>
       </div>
@@ -124,9 +124,9 @@
   <!-- INSPIRATION -->
   <section class="inspiration">
     <div class="text animate">
-      <h2>Thrifted<br>Inspirations</h2>
-      <p>Curated thrift outfits to inspire your daily street and vintage looks.</p>
-      <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})">
+      <h2 data-i18n="inspirationTitle">Thrifted<br>Inspirations</h2>
+      <p data-i18n="inspirationSubtitle">Curated thrift outfits to inspire your daily street and vintage looks.</p>
+      <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})" data-i18n="inspirationCta">
         Explore Looks
       </button>
     </div>
@@ -145,19 +145,19 @@
   <!-- TRENDING -->
   <section class="trending" id="trending">
     <div class="trending-header">
-      <h2>Trending Thrift Picks</h2>
+      <h2 data-i18n="trendingTitle">Trending Thrift Picks</h2>
       <div class="filters" role="group" aria-label="Filter by category">
-        <button class="active" onclick="filterByCategory(this, '')">All</button>
-        <button onclick="filterByCategory(this, 'shoes')">Shoes</button>
-        <button onclick="filterByCategory(this, 'tee')">Vintage Tees</button>
-        <button onclick="filterByCategory(this, 'cap')">Caps</button>
-        <button onclick="filterByCategory(this, 'jacket')">Jackets</button>
-        <button onclick="filterByCategory(this, 'streetwear')">Streetwear</button>
+        <button class="active" onclick="filterByCategory(this, '')" data-i18n="filterAll">All</button>
+        <button onclick="filterByCategory(this, 'shoes')" data-i18n="filterShoes">Shoes</button>
+        <button onclick="filterByCategory(this, 'tee')" data-i18n="filterTees">Vintage Tees</button>
+        <button onclick="filterByCategory(this, 'cap')" data-i18n="filterCaps">Caps</button>
+        <button onclick="filterByCategory(this, 'jacket')" data-i18n="filterJackets">Jackets</button>
+        <button onclick="filterByCategory(this, 'streetwear')" data-i18n="filterStreetwear">Streetwear</button>
       </div>
     </div>
 
     <div class="filter-bar">
-      <input type="text" id="searchInput" placeholder=" Search thrift finds...">
+      <input type="text" id="searchInput" placeholder=" Search thrift finds..." data-i18n-placeholder="searchPlaceholder">
       <select id="filterCategory" style="display:none">
         <option value="">All</option>
         <option value="shoes">Shoes</option>
@@ -168,14 +168,14 @@
         <option value="accessories">Accessories</option>
       </select>
       <select id="filterSize">
-        <option value="">All Sizes</option>
+        <option value="" data-i18n="anySize">All Sizes</option>
         <option>XS</option><option>S</option><option>M</option>
         <option>L</option><option>XL</option><option>XXL</option>
         <option>38</option><option>39</option><option>40</option>
         <option>41</option><option>42</option><option>43</option>
       </select>
       <select id="filterCondition">
-        <option value="">Any Condition</option>
+        <option value="" data-i18n="anyCondition">Any Condition</option>
         <option value="like new">Like New</option>
         <option value="good">Good</option>
         <option value="fair">Fair</option>
@@ -201,22 +201,22 @@
 
   <!-- FEATURES -->
   <section class="features">
-    <h2>Why thrifters<br>love 3FTERS</h2>
+    <h2 data-i18n="featuresTitle">Why thrifters<br>love 3FTERS</h2>
     <div class="feature-grid">
       <div class="feature animate">
         <div class="icon" aria-hidden="true">❤</div>
-        <h4>Curated with Care</h4>
-        <p>Every thrift item is cleaned, checked, and carefully selected.</p>
+        <h4 data-i18n="feature1Title">Curated with Care</h4>
+        <p data-i18n="feature1Body">Every thrift item is cleaned, checked, and carefully selected.</p>
       </div>
       <div class="feature animate">
         <div class="icon" aria-hidden="true">📞</div>
-        <h4>Friendly Support</h4>
-        <p>Need help choosing sizes or styles? We've got you.</p>
+        <h4 data-i18n="feature2Title">Friendly Support</h4>
+        <p data-i18n="feature2Body">Need help choosing sizes or styles? We've got you.</p>
       </div>
       <div class="feature animate">
         <div class="icon" aria-hidden="true">🔄</div>
-        <h4>Easy Returns</h4>
-        <p>Simple and stress-free returns on thrift purchases.</p>
+        <h4 data-i18n="feature3Title">Easy Returns</h4>
+        <p data-i18n="feature3Body">Simple and stress-free returns on thrift purchases.</p>
       </div>
     </div>
   </section>
@@ -231,7 +231,7 @@
       <div class="blog-content">
         <h2>How to style thrifted outfits and still look fresh.</h2>
         <p>You don't need expensive clothes to look good. Thrifting is all about smart combinations and confidence.</p>
-        <button>Read Story</button>
+        <button data-i18n="readStory">Read Story</button>
       </div>
     </div>
   </section>
@@ -244,8 +244,8 @@
     <h3>3FTERS</h3>
     <p>3FTERS is a thrift-first fashion brand focused on affordable, unique, and sustainable clothing and shoes curated for Kenya.</p>
     <div class="newsletter">
-      <input type="email" id="newsletterEmail" placeholder="Enter your email for thrift drops">
-      <button type="button" id="newsletterBtn">Submit</button>
+      <input type="email" id="newsletterEmail" placeholder="Enter your email for thrift drops" data-i18n-placeholder="newsletterPlaceholder">
+      <button type="button" id="newsletterBtn" data-i18n="newsletterBtn">Submit</button>
     </div>
   </div>
   <div class="footer-links">
@@ -281,6 +281,7 @@
 <script type="module">
   import { updateNav, getUser } from './client/js/auth.js';
   import { loadListings, updateCartCount } from './client/js/listings.js';
+  import { initPreferenceSelectors } from './client/js/preferences.js';
 
   // Init
   updateNav();
@@ -376,44 +377,13 @@
   });
 
   // ========================
-// DROPDOWN FUNCTIONALITY
-// ========================
-let currentLang     = ' English';
-let currentCurrency = ' KSh';
+  // LANGUAGE + CURRENCY PREFERENCES
+  // ========================
+  initPreferenceSelectors();
 
-document.querySelectorAll('.dropdown-menu span').forEach(option => {
-  option.addEventListener('click', () => {
-    const menu    = option.closest('.dropdown-menu');
-    const trigger = option.closest('.dropdown').querySelector('.dropdown-trigger');
-
-    // Remove active from siblings
-    menu.querySelectorAll('span').forEach(s => s.classList.remove('active-option'));
-    option.classList.add('active-option');
-
-    // Update trigger text
-    trigger.textContent = option.textContent + ' ▾';
-
-    // Hide menu
-    menu.style.display = 'none';
-    setTimeout(() => menu.style.display = '', 300);
-
-    // Handle currency change
-    if (option.dataset.currency) {
-      currentCurrency = option.dataset.currency;
-      document.querySelectorAll('.price').forEach(el => {
-        const ksh = Number(el.dataset.ksh || el.textContent.replace(/[^0-9]/g, ''));
-        if (!el.dataset.ksh) el.dataset.ksh = ksh;
-        if (option.dataset.currency === 'USD') {
-          el.textContent = `$${(ksh / 130).toFixed(2)}`;
-        } else if (option.dataset.currency === 'GBP') {
-          el.textContent = `£${(ksh / 165).toFixed(2)}`;
-        } else {
-          el.textContent = `KSh ${ksh.toLocaleString()}`;
-        }
-      });
-    }
-  });
-});
+  // Re-render the product grid whenever currency changes, so prices
+  // update immediately and stay correct after future filters/reloads.
+  window.addEventListener('3fters:currency-changed', loadListings);
 </script>
 
 </body>

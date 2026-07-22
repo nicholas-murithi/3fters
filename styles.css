@@ -157,7 +157,27 @@ body::before {
 @media (min-width: 769px) {
   .logo img { height: 34px; }
 }
+.desktop-nav {
+  display: none;
+}
 
+@media (min-width: 769px) {
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .desktop-nav a {
+    text-decoration: none;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .desktop-nav a:hover {
+    opacity: 0.6;
+  }
+}
 /* HAMBURGER */
 .menu-toggle {
   display: none;
