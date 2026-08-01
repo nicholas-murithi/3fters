@@ -18,12 +18,3 @@ pool.connect((err, client, done) => {
 
 module.exports = pool;
 
-// Keep database awake — ping every 4 minutes
-setInterval(async () => {
-  try {
-    await pool.query('SELECT 1');
-    console.log('DB keepalive ping');
-  } catch (err) {
-    console.error('Keepalive error:', err);
-  }
-}, 4 * 60 * 1000);
