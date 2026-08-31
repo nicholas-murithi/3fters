@@ -76,22 +76,20 @@ router.get('/listing/:listingId', async (req, res) => {
   }
 });
 
-// GET reviews for a seller (their overall rating across all items)
-router.get('/seller/:sellerId', async (req, res) => {
+// GET overall 3FTERS store rating (all reviews from all buyers, site-wide)
+router.get('/store', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT r.*, u.full_name as buyer_name, l.title as listing_title
        FROM reviews r
        JOIN users u ON r.buyer_id = u.id
        JOIN listings l ON r.listing_id = l.id
-       WHERE r.seller_id = $1
-       ORDER BY r.created_at DESC`,
-      [req.params.sellerId]
+       ORDER BY r.created_at DESC
+       LIMIT 20`
     );
 
     const avgRes = await pool.query(
-      'SELECT AVG(rating)::numeric(2,1) as avg_rating, COUNT(*) as total FROM reviews WHERE seller_id = $1',
-      [req.params.sellerId]
+      'SELECT AVG(rating)::numeric(2,1) as avg_rating, COUNT(*) as total FROM reviews'
     );
 
     res.json({

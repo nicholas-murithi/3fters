@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="3FTERS — Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
   <title>3FTERS  Thrift Everything</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="styles/main.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -15,20 +15,26 @@
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="top-left">
-    <select id="langSelect" aria-label="Select language">
-      <option value="en">English</option>
-      <option value="sw">Kiswahili</option>
-    </select>
-    <select id="currencySelect" aria-label="Select currency">
-      <option value="KES">KSh</option>
-      <option value="USD">USD</option>
-    </select>
+    <div class="dropdown">
+      <span class="dropdown-trigger"> English ▾</span>
+      <div class="dropdown-menu">
+        <span data-lang="en" class="active-option">🇬🇧 English</span>
+        <span data-lang="sw">🇰🇪 Swahili</span>
+      </div>
+    </div>
+    <div class="dropdown">
+  <span class="dropdown-trigger"> KSh ▾</span>
+  <div class="dropdown-menu">
+    <span data-currency="KES" class="active-option">🇰🇪 KSh  Kenyan Shilling</span>
+    <span data-currency="USD">🇺🇸 USD US Dollar</span>
+    <span data-currency="GBP">🇬🇧 GBP British Pound</span>
+  </div>
+</div>
   </div>
   <div class="top-right">
-    <a href="client/orders.html" data-i18n="trackOrder">Track Order</a>
-    <a href="client/about.html" data-i18n="about">About 3FTERS</a>
-    <a href="client/login.html" data-i18n="login">Log In</a>
-    <a href="client/register.html" data-i18n="signup">Sign Up</a>
+    <a href="orders.html" data-i18n="trackOrder">Track Order</a>
+    <a href="about.html" data-i18n="about">About 3FTERS</a>
+    <div id="topBarAuth"></div>
   </div>
 </div>
 
@@ -45,9 +51,8 @@
     <button id="cartBtn" class="cart-btn" aria-label="Open cart"
       onclick="window.location.href='client/cart.html'">
       🛒 <span id="cartCount"
-        style="font-size:11px;background:black;color:white;border-radius:50%;padding:2px 6px;display:none">
-        0
-      </span>
+        style="font-size:11px;background:black;color:white;border-radius:50%;
+          padding:2px 6px;display:none">0</span>
     </button>
   </div>
 </header>
@@ -63,24 +68,40 @@
     <button class="close-menu" id="closeMenu" aria-label="Close navigation menu">✕</button>
   </div>
   <nav class="mobile-nav">
+    <h4>Preferences</h4>
+    <div class="mobile-preferences">
+      <div class="dropdown">
+        <span class="dropdown-trigger"> English ▾</span>
+        <div class="dropdown-menu">
+          <span data-lang="en" class="active-option">🇬🇧 English</span>
+          <span data-lang="sw">🇰🇪 Swahili</span>
+        </div>
+      </div>
+      <div class="dropdown">
+        <span class="dropdown-trigger"> KSh ▾</span>
+        <div class="dropdown-menu">
+          <span data-currency="KES" class="active-option">🇰🇪 KSh  Kenyan Shilling</span>
+          <span data-currency="USD">🇺🇸 USD US Dollar</span>
+          <span data-currency="GBP">🇬🇧 GBP British Pound</span>
+        </div>
+      </div>
+    </div>
+
     <h4>Shop</h4>
-    <a href="#listingsGrid">All Thrift Items</a>
-    <a href="#" onclick="filterByCategory(this,'shoes')">Thrifted Shoes</a>
-    <a href="#" onclick="filterByCategory(this,'tee')">Vintage T-Shirts</a>
-    <a href="#" onclick="filterByCategory(this,'jacket')">Jackets</a>
-    <a href="#" onclick="filterByCategory(this,'accessories')">Accessories</a>
+    <a href="#trending" data-i18n="allItems">All Thrift Items</a>
+    <a href="#" onclick="filterByGender(null,'men')">Gents</a>
+    <a href="#" onclick="filterByGender(null,'women')">Ladies</a>
 
     <h4>Account</h4>
-    <a href="client/login.html">Log In</a>
-    <a href="client/register.html">Sign Up</a>
-    <a href="client/cart.html">🛒 My Cart</a>
-    <a href="client/orders.html">My Orders</a>
-    <a href="client/seller-dashboard.html">Seller Dashboard</a>
+    <div id="mobileNavAuth"></div>
+    <a href="cart.html" data-i18n="myCart">🛒 My Cart</a>
+    <a href="orders.html" data-i18n="myOrders">My Orders</a>
+    <div id="mobileRoleLinks"></div>
 
     <h4>Info</h4>
-    <a href="client/about.html">About 3FTERS</a>
-    <a href="#">Contact Us</a>
-    <a href="#">FAQ</a>
+    <a href="about.html" data-i18n="about">About 3FTERS</a>
+    <a href="#" data-i18n="contactUs">Contact Us</a>
+    <a href="#" data-i18n="faq">FAQ</a>
   </nav>
 </div>
 
@@ -90,13 +111,20 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-main animate">
-      <h1>Thrifted<br>Style Finds</h1>
-      <p>Affordable, unique, and sustainable thrifted clothing and shoes curated just for you.</p>
-      <button onclick="document.getElementById('listingsGrid').scrollIntoView({behavior:'smooth'})">
-        Shop Thrift Finds
-      </button>
-      <img src="eimages/herro.png" loading="lazy" alt="Model wearing thrifted outfit">
+      <!-- Full background image -->
+      <img src="eimages/herro.png" loading="lazy" alt="Model wearing thrifted outfit" class="hero-bg-img">
+      <!-- Overlay -->
+      <div class="hero-overlay"></div>
+      <!-- Content on top -->
+      <div class="hero-content">
+        <h1 data-i18n="heroTitle">Thrifted<br>Style Finds</h1>
+        <p data-i18n="heroSubtitle">Affordable, unique, and sustainable thrifted clothing and shoes curated just for you.</p>
+        <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})" data-i18n="heroCta">
+          Shop Thrift Finds
+        </button>
+      </div>
     </div>
+
     <div class="hero-side">
       <div class="card animate">
         <img src="eimages/street.png" loading="lazy" alt="Streetwear thrift collection">
@@ -112,9 +140,9 @@
   <!-- INSPIRATION -->
   <section class="inspiration">
     <div class="text animate">
-      <h2>Thrifted<br>Inspirations</h2>
-      <p>Curated thrift outfits to inspire your daily street and vintage looks.</p>
-      <button onclick="document.getElementById('listingsGrid').scrollIntoView({behavior:'smooth'})">
+      <h2 data-i18n="inspirationTitle">Thrifted<br>Inspirations</h2>
+      <p data-i18n="inspirationSubtitle">Curated thrift outfits to inspire your daily street and vintage looks.</p>
+      <button onclick="document.getElementById('trending').scrollIntoView({behavior:'smooth'})" data-i18n="inspirationCta">
         Explore Looks
       </button>
     </div>
@@ -130,56 +158,96 @@
     </div>
   </section>
 
-  <!-- TRENDING / LIVE LISTINGS -->
+  <!-- TRENDING -->
   <section class="trending" id="trending">
     <div class="trending-header">
-      <h2>Trending Thrift Picks</h2>
-      <div class="filters" role="group" aria-label="Filter by category">
-        <button class="active" onclick="filterByCategory(this, '')">All</button>
-        <button onclick="filterByCategory(this, 'shoes')">Shoes</button>
-        <button onclick="filterByCategory(this, 'tee')">Vintage Tees</button>
-        <button onclick="filterByCategory(this, 'cap')">Caps</button>
-        <button onclick="filterByCategory(this, 'jacket')">Jackets</button>
-        <button onclick="filterByCategory(this, 'streetwear')">Streetwear</button>
-      </div>
+      <h2 data-i18n="trendingTitle">Trending Thrift Picks</h2>
     </div>
 
-    <!-- FILTER BAR -->
+    <!-- GENDER -->
+    <div class="filters gender-filters" role="group" aria-label="Filter by gender">
+      <button class="active" onclick="filterByGender(this, '')">All</button>
+      <button onclick="filterByGender(this, 'men')">Gents</button>
+      <button onclick="filterByGender(this, 'women')">Ladies</button>
+    </div>
+
+    <!-- STYLE / OCCASION -->
+    <div class="filters style-filters" role="group" aria-label="Filter by style">
+      <button class="active" onclick="filterByStyle(this, '')">All Styles</button>
+      <button onclick="filterByStyle(this, 'campus')">Campus / Comrade Wear</button>
+      <button onclick="filterByStyle(this, 'corporate')">Corporate Wear</button>
+      <button onclick="filterByStyle(this, 'casual')">Casual</button>
+      <button onclick="filterByStyle(this, 'streetwear')">Streetwear</button>
+    </div>
+
+    <!-- CATEGORY -->
+    <div class="filters category-filters" role="group" aria-label="Filter by category">
+      <button class="active" onclick="filterByCategory(this, '')" data-i18n="filterAll">All</button>
+      <button onclick="filterByCategory(this, 'jeans')">Jeans</button>
+      <button onclick="filterByCategory(this, 'sweatpants')">Sweatpants</button>
+      <button onclick="filterByCategory(this, 'official-pants')">Official Pants</button>
+      <button onclick="filterByCategory(this, 'sporttracks')">Sport Tracks</button>
+      <button onclick="filterByCategory(this, 'shirts')">Shirts</button>
+      <button onclick="filterByCategory(this, 'tee')" data-i18n="filterTees">Vintage Tees</button>
+      <button onclick="filterByCategory(this, 'shorts')">Shorts</button>
+      <button onclick="filterByCategory(this, 'jacket')" data-i18n="filterJackets">Jackets</button>
+      <button onclick="filterByCategory(this, 'streetwear')" data-i18n="filterStreetwear">Streetwear</button>
+      <button onclick="filterByCategory(this, 'shoes')" data-i18n="filterShoes">Casual Shoes</button>
+      <button onclick="filterByCategory(this, 'official-shoes')">Official Shoes</button>
+      <button onclick="filterByCategory(this, 'socks')">Socks</button>
+      <button onclick="filterByCategory(this, 'belts')">Belts</button>
+      <button onclick="filterByCategory(this, 'ties')">Ties</button>
+      <button onclick="filterByCategory(this, 'cap')" data-i18n="filterCaps">Caps</button>
+    </div>
+
     <div class="filter-bar">
-      <input type="text" id="searchInput" placeholder="🔍 Search thrift finds..." data-i18n-placeholder="searchPlaceholder">
+      <input type="text" id="searchInput" placeholder=" Search thrift finds..." data-i18n-placeholder="searchPlaceholder">
       <select id="filterCategory" style="display:none">
         <option value="">All</option>
-        <option value="shoes">Shoes</option>
-        <option value="jacket">Jacket</option>
+        <option value="jeans">Jeans</option>
+        <option value="sweatpants">Sweatpants</option>
+        <option value="official-pants">Official Pants</option>
+        <option value="sporttracks">Sport Tracks</option>
+        <option value="shirts">Shirts</option>
         <option value="tee">Vintage Tee</option>
-        <option value="cap">Cap</option>
+        <option value="shorts">Shorts</option>
+        <option value="jacket">Jacket</option>
         <option value="streetwear">Streetwear</option>
-        <option value="accessories">Accessories</option>
+        <option value="shoes">Casual Shoes</option>
+        <option value="official-shoes">Official Shoes</option>
+        <option value="socks">Socks</option>
+        <option value="belts">Belts</option>
+        <option value="ties">Ties</option>
+        <option value="cap">Cap</option>
+        <option value="accessories">Other Accessories</option>
+      </select>
+      <select id="filterGender" style="display:none">
+        <option value="">All</option>
+        <option value="men">Gents</option>
+        <option value="women">Ladies</option>
+      </select>
+      <select id="filterStyle" style="display:none">
+        <option value="">All Styles</option>
+        <option value="campus">Campus / Comrade Wear</option>
+        <option value="corporate">Corporate Wear</option>
+        <option value="casual">Casual</option>
+        <option value="streetwear">Streetwear</option>
       </select>
       <select id="filterSize">
-        <option value="">All Sizes</option>
+        <option value="" data-i18n="anySize">All Sizes</option>
         <option>XS</option><option>S</option><option>M</option>
         <option>L</option><option>XL</option><option>XXL</option>
         <option>38</option><option>39</option><option>40</option>
         <option>41</option><option>42</option><option>43</option>
       </select>
       <select id="filterCondition">
-        <option value="">Any Condition</option>
+        <option value="" data-i18n="anyCondition">Any Condition</option>
         <option value="like new">Like New</option>
         <option value="good">Good</option>
         <option value="fair">Fair</option>
       </select>
-      <input type="number" id="filterMinPrice" placeholder="Min KSh" style="width:100px">
-      <input type="number" id="filterMaxPrice" placeholder="Max KSh" style="width:100px">
-      <select id="filterSort">
-        <option value="newest">Newest</option>
-        <option value="price_low">Price: Low to High</option>
-        <option value="price_high">Price: High to Low</option>
-        <option value="top_rated">Top Rated</option>
-      </select>
     </div>
 
-    <!-- LIVE LISTINGS GRID -->
     <div class="product-grid" id="listingsGrid">
       <div class="loading-state">Loading thrift finds...</div>
     </div>
@@ -199,22 +267,22 @@
 
   <!-- FEATURES -->
   <section class="features">
-    <h2>Why thrifters<br>love 3FTERS</h2>
+    <h2 data-i18n="featuresTitle">Why thrifters<br>love 3FTERS</h2>
     <div class="feature-grid">
       <div class="feature animate">
         <div class="icon" aria-hidden="true">❤</div>
-        <h4>Curated with Care</h4>
-        <p>Every thrift item is cleaned, checked, and carefully selected.</p>
+        <h4 data-i18n="feature1Title">Curated with Care</h4>
+        <p data-i18n="feature1Body">Every thrift item is cleaned, checked, and carefully selected.</p>
       </div>
       <div class="feature animate">
         <div class="icon" aria-hidden="true">📞</div>
-        <h4>Friendly Support</h4>
-        <p>Need help choosing sizes or styles? We've got you.</p>
+        <h4 data-i18n="feature2Title">Friendly Support</h4>
+        <p data-i18n="feature2Body">Need help choosing sizes or styles? We've got you.</p>
       </div>
       <div class="feature animate">
         <div class="icon" aria-hidden="true">🔄</div>
-        <h4>Easy Returns</h4>
-        <p>Simple and stress-free returns on thrift purchases.</p>
+        <h4 data-i18n="feature3Title">Easy Returns</h4>
+        <p data-i18n="feature3Body">Simple and stress-free returns on thrift purchases.</p>
       </div>
     </div>
   </section>
@@ -229,7 +297,7 @@
       <div class="blog-content">
         <h2>How to style thrifted outfits and still look fresh.</h2>
         <p>You don't need expensive clothes to look good. Thrifting is all about smart combinations and confidence.</p>
-        <button>Read Story</button>
+        <button data-i18n="readStory">Read Story</button>
       </div>
     </div>
   </section>
@@ -242,11 +310,10 @@
     <h3>3FTERS</h3>
     <p>3FTERS is a thrift-first fashion brand focused on affordable, unique, and sustainable clothing and shoes curated for Kenya.</p>
     <div class="newsletter">
-      <input type="email" id="newsletterEmail" placeholder="Enter your email for thrift drops" aria-label="Email for newsletter">
-      <button type="button" id="newsletterBtn">Submit</button>
+      <input type="email" id="newsletterEmail" placeholder="Enter your email for thrift drops" data-i18n-placeholder="newsletterPlaceholder">
+      <button type="button" id="newsletterBtn" data-i18n="newsletterBtn">Submit</button>
     </div>
   </div>
-
   <div class="footer-links">
     <div>
       <h4>POPULAR</h4>
@@ -258,68 +325,108 @@
     </div>
     <div>
       <h4>MENU</h4>
-      <a href="#listingsGrid">All Thrift Items</a>
+      <a href="#trending">All Thrift Items</a>
       <a href="#">New Drops</a>
       <a href="#">Reviews</a>
       <a href="#">Blog</a>
     </div>
     <div>
       <h4>OTHER</h4>
-      <a href="client/orders.html">Track Order</a>
+      <a href="orders.html">Track Order</a>
       <a href="#">FAQ</a>
-      <a href="client/about.html">About 3FTERS</a>
+      <a href="about.html">About 3FTERS</a>
       <a href="#">Contact Us</a>
       <a href="#">Terms & Conditions</a>
     </div>
+     </div>
+      <p class="footer-credit">Made by <a href="https://nicholasdevs.vercel.app/" target="_blank" rel="noopener">nicholasdevs</a></p>
+     </div>
   </div>
 </footer>
 
 <script type="module">
-  import { updateNav, getUser } from './client/js/auth.js';
-  import { loadListings, updateCartCount } from './client/js/listings.js';
-  import { initPreferenceSelectors } from './client/js/preferences.js';
+  import { updateNav, getUser } from './js/auth.js';
+  import { loadListings, updateCartCount } from './js/listings.js';
+  import { initPreferenceSelectors } from './js/preferences.js';
 
-  // ========================
-  // INIT
-  // ========================
+  // Init
   updateNav();
   updateCartCount();
   loadListings();
-  initPreferenceSelectors();
 
-  // ========================
-  // CATEGORY FILTER
-  // ========================
+  // Update top bar auth
+  const user = getUser();
+  const topBarAuth = document.getElementById('topBarAuth');
+  const mobileNavAuth = document.getElementById('mobileNavAuth');
+  const mobileRoleLinks = document.getElementById('mobileRoleLinks');
+
+  if (user) {
+    topBarAuth.innerHTML = '';
+    if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${user.full_name?.split(' ')[0] || 'Account'}</span>`;
+
+    // Only show links that match the logged-in user's actual role
+    if (mobileRoleLinks) {
+      let links = '';
+      if (user.role === 'admin') {
+        links += `<a href="admin.html" data-i18n="adminPanel">Admin Panel</a>`;
+      }
+      mobileRoleLinks.innerHTML = links;
+    }
+  } else {
+    topBarAuth.innerHTML = `
+      <a href="login.html">Log In</a>
+      <a href="register.html">Sign Up</a>
+    `;
+    if (mobileNavAuth) mobileNavAuth.innerHTML = `
+      <a href="login.html">Log In</a>
+      <a href="register.html">Sign Up</a>
+    `;
+    if (mobileRoleLinks) mobileRoleLinks.innerHTML = '';
+  }
+
+  // Category filter
   window.filterByCategory = function(btn, value) {
-    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
-    if (btn.classList) btn.classList.add('active');
+    document.querySelectorAll('.category-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
     document.getElementById('filterCategory').value = value;
     loadListings();
     document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // ========================
-  // SEARCH + FILTER
-  // ========================
+  // Gender filter (Gents / Ladies)
+  window.filterByGender = function(btn, value) {
+    document.querySelectorAll('.gender-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
+    document.getElementById('filterGender').value = value;
+    loadListings();
+    document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Style filter (Campus / Corporate / Casual / Streetwear)
+  window.filterByStyle = function(btn, value) {
+    document.querySelectorAll('.style-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
+    document.getElementById('filterStyle').value = value;
+    loadListings();
+    document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Search + filter
   let debounce;
-  ['searchInput', 'filterSize', 'filterCondition', 'filterMinPrice', 'filterMaxPrice', 'filterSort'].forEach(id => {
+  ['searchInput', 'filterSize', 'filterCondition', 'filterGender', 'filterStyle'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => {
       clearTimeout(debounce);
       debounce = setTimeout(loadListings, 400);
     });
   });
 
-  // ========================
-  // SCROLL ANIMATIONS
-  // ========================
+  // Scroll animations
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
   }, { threshold: 0.15 });
   document.querySelectorAll('.animate').forEach(el => observer.observe(el));
 
-  // ========================
-  // HAMBURGER MENU
-  // ========================
+  // Hamburger menu
   const menuToggle = document.getElementById('menuToggle');
   const navGroup   = document.getElementById('navGroup');
   const closeMenu  = document.getElementById('closeMenu');
@@ -329,7 +436,6 @@
     menuToggle?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
   }
-
   function closeNav() {
     navGroup?.classList.remove('active');
     menuToggle?.setAttribute('aria-expanded', 'false');
@@ -341,36 +447,38 @@
   document.querySelectorAll('.mobile-nav a').forEach(l => l.addEventListener('click', closeNav));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
 
-  // ========================
-  // NEWSLETTER
-  // ========================
+  // Newsletter
   document.getElementById('newsletterBtn')?.addEventListener('click', () => {
     const input = document.getElementById('newsletterEmail');
     const btn   = document.getElementById('newsletterBtn');
     const email = input?.value.trim();
-
     if (!email || !email.includes('@') || !email.includes('.')) {
       input.style.borderColor = '#e74c3c';
       setTimeout(() => input.style.borderColor = '', 2500);
       return;
     }
-
-    btn.textContent       = '✅ Subscribed!';
-    btn.style.background  = '#2ecc71';
-    input.value           = '';
+    btn.textContent      = '✅ Subscribed!';
+    btn.style.background = '#2ecc71';
+    input.value          = '';
     setTimeout(() => {
       btn.textContent      = 'Submit';
       btn.style.background = '';
     }, 3000);
   });
 
-  // ========================
-  // CARD HOVER
-  // ========================
+  // Card hover
   document.querySelectorAll('.card, .gallery-card').forEach(card => {
     card.addEventListener('mouseenter', () => card.style.transform = 'scale(1.03)');
     card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
   });
+
+  // LANGUAGE + CURRENCY PREFERENCES
+  
+  initPreferenceSelectors();
+
+  // Re-render the product grid whenever currency changes, so prices
+  // update immediately and stay correct after future filters/reloads.
+  window.addEventListener('3fters:currency-changed', loadListings);
 </script>
 
 </body>

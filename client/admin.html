@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin — 3FTERS</title>
+  <title>Admin  3FTERS</title>
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -52,8 +52,125 @@
 
   <!-- LISTINGS TAB -->
   <div id="tabListings" style="display:none">
-    <h2 style="margin-bottom:20px">All Listings</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2>All Listings</h2>
+      <button onclick="openAddListing()" class="tab-btn active" style="padding:9px 18px">+ Add Listing</button>
+    </div>
     <div id="listingsList"></div>
+  </div>
+
+  <!-- ADD LISTING MODAL -->
+  <div id="addListingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    z-index:9999;align-items:center;justify-content:center;padding:20px">
+    <div style="background:white;border-radius:16px;padding:25px;max-width:480px;width:100%;
+      max-height:90vh;overflow-y:auto">
+      <h3 style="margin-bottom:15px">Add New Listing</h3>
+
+      <div id="addListingError" style="display:none;background:#fee2e2;color:#991b1b;
+        padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Images (up to 5)</label>
+          <input type="file" id="listingImages" accept="image/*" multiple
+            style="width:100%;font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Title</label>
+          <input type="text" id="listingTitleInput" placeholder="e.g. Nike Sweatpants"
+            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+        </div>
+        <div>
+          <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Description</label>
+          <textarea id="listingDescInput" rows="3" placeholder="Short description"
+            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Price (KSh)</label>
+            <input type="number" id="listingPriceInput" placeholder="1500"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+          </div>
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Size</label>
+            <input type="text" id="listingSizeInput" placeholder="M / 40"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Category</label>
+            <select id="listingCategoryInput"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+              <optgroup label="Trousers">
+                <option value="jeans">Jeans</option>
+                <option value="sweatpants">Sweatpants</option>
+                <option value="official-pants">Official Pants</option>
+                <option value="sporttracks">Sport Tracks</option>
+              </optgroup>
+              <optgroup label="Tops">
+                <option value="shirts">Shirts</option>
+                <option value="tee">Vintage Tee</option>
+                <option value="jacket">Jacket</option>
+              </optgroup>
+              <optgroup label="Other Wear">
+                <option value="shorts">Shorts</option>
+                <option value="streetwear">Streetwear</option>
+              </optgroup>
+              <optgroup label="Footwear">
+                <option value="shoes">Casual Shoes</option>
+                <option value="official-shoes">Official Shoes</option>
+                <option value="socks">Socks</option>
+              </optgroup>
+              <optgroup label="Accessories">
+                <option value="belts">Belts</option>
+                <option value="ties">Ties</option>
+                <option value="cap">Cap</option>
+                <option value="accessories">Other Accessories</option>
+              </optgroup>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Condition</label>
+            <select id="listingConditionInput"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+              <option value="like new">Like New</option>
+              <option value="good">Good</option>
+              <option value="fair">Fair</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Gender</label>
+            <select id="listingGenderInput"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+              <option value="unisex">Unisex</option>
+              <option value="men">Gents</option>
+              <option value="women">Ladies</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Style (optional)</label>
+            <select id="listingStyleInput"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+              <option value="">— None —</option>
+              <option value="campus">Campus / Comrade Wear</option>
+              <option value="corporate">Corporate / Official Wear</option>
+              <option value="casual">Casual</option>
+              <option value="streetwear">Streetwear</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button onclick="closeAddListing()" style="flex:1;padding:11px;border-radius:8px;
+          border:1px solid #ddd;background:white;cursor:pointer;font-family:'Inter',sans-serif">Cancel</button>
+        <button onclick="submitListing()" id="submitListingBtn" style="flex:1;padding:11px;border-radius:8px;
+          border:none;background:black;color:white;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600">Publish</button>
+      </div>
+    </div>
   </div>
 
   <!-- ORDERS TAB -->
@@ -176,7 +293,14 @@
               <td>${u.phone || '—'}</td>
               <td><span class="badge ${u.role}">${u.role}</span></td>
               <td>${new Date(u.created_at).toLocaleDateString()}</td>
-              <td>
+              <td style="display:flex;gap:6px">
+                ${u.role === 'seller' ? `
+                  <button onclick="makeBuyer('${u.id}')"
+                    style="padding:5px 10px;background:#dcfce7;border:1px solid #86efac;
+                      border-radius:6px;cursor:pointer;font-size:12px">
+                    Make Buyer
+                  </button>
+                ` : ''}
                 <button onclick="deleteUser('${u.id}')"
                   style="padding:5px 10px;background:#fee2e2;border:1px solid #fca5a5;
                     border-radius:6px;cursor:pointer;font-size:12px">
@@ -278,6 +402,34 @@
   };
 
   // ========================
+  // CHANGE ROLE: SELLER -> BUYER
+  // ========================
+  window.makeBuyer = async function(id) {
+    const res = await fetch(`${API}/admin/users/${id}/role`, {
+      method:  'PATCH',
+      headers: authHeaders,
+      body:    JSON.stringify({ role: 'buyer' })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Failed to update role');
+      return;
+    }
+    loadStats();
+  };
+
+  window.convertAllSellers = async function() {
+    if (!confirm('Convert every remaining seller account to buyer? This cannot be undone.')) return;
+    const res  = await fetch(`${API}/admin/users/convert-sellers`, {
+      method:  'PATCH',
+      headers: authHeaders
+    });
+    const data = await res.json();
+    alert(data.message || 'Done');
+    loadStats();
+  };
+
+  // ========================
   // DELETE LISTING
   // ========================
   window.deleteListing = async function(id) {
@@ -287,6 +439,81 @@
       headers: authHeaders
     });
     loadStats();
+  };
+
+  // ========================
+  // ADD LISTING
+  // ========================
+  window.openAddListing = function() {
+    document.getElementById('addListingModal').style.display = 'flex';
+  };
+
+  window.closeAddListing = function() {
+    document.getElementById('addListingModal').style.display = 'none';
+    document.getElementById('addListingError').style.display  = 'none';
+    ['listingImages','listingTitleInput','listingDescInput','listingPriceInput','listingSizeInput']
+      .forEach(id => document.getElementById(id).value = '');
+  };
+
+  window.submitListing = async function() {
+    const errorEl = document.getElementById('addListingError');
+    const btn     = document.getElementById('submitListingBtn');
+    errorEl.style.display = 'none';
+
+    const title       = document.getElementById('listingTitleInput').value.trim();
+    const description = document.getElementById('listingDescInput').value.trim();
+    const price       = document.getElementById('listingPriceInput').value;
+    const size        = document.getElementById('listingSizeInput').value.trim();
+    const category    = document.getElementById('listingCategoryInput').value;
+    const condition   = document.getElementById('listingConditionInput').value;
+    const gender      = document.getElementById('listingGenderInput').value;
+    const style       = document.getElementById('listingStyleInput').value;
+    const files       = document.getElementById('listingImages').files;
+
+    if (!title || !price) {
+      errorEl.textContent = 'Title and price are required.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Publishing...';
+
+    try {
+      let images = [];
+
+      if (files.length > 0) {
+        const formData = new FormData();
+        [...files].forEach(f => formData.append('images', f));
+
+        const uploadRes = await fetch(`${API}/upload`, {
+          method:  'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body:    formData
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error || 'Image upload failed');
+        images = uploadData.urls;
+      }
+
+      const res = await fetch(`${API}/listings`, {
+        method:  'POST',
+        headers: authHeaders,
+        body:    JSON.stringify({ title, description, price, category, size, condition, images, gender, style })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create listing');
+
+      closeAddListing();
+      loadStats();
+
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Publish';
+    }
   };
 
   // ========================

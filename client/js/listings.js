@@ -16,6 +16,8 @@ export async function loadListings() {
   const minPrice  = document.getElementById('filterMinPrice')?.value || '';
   const maxPrice  = document.getElementById('filterMaxPrice')?.value || '';
   const sort      = document.getElementById('filterSort')?.value || '';
+  const gender    = document.getElementById('filterGender')?.value || '';
+  const style     = document.getElementById('filterStyle')?.value || '';
 
   const params = new URLSearchParams();
   if (search)    params.append('search', search);
@@ -25,6 +27,8 @@ export async function loadListings() {
   if (minPrice)  params.append('min_price', minPrice);
   if (maxPrice)  params.append('max_price', maxPrice);
   if (sort)      params.append('sort', sort);
+  if (gender)    params.append('gender', gender);
+  if (style)     params.append('style', style);
 
   const grid = document.getElementById('listingsGrid');
   if (!grid) return;
@@ -40,31 +44,41 @@ export async function loadListings() {
     }
 
     grid.innerHTML = data.map(item => `
-      <div class="product-card animate"
-        onclick="window.location.href='/client/listing.html?id=${item.id}'">
-        <img
-          src="${item.images?.[0] || '/eimages/placeholder.png'}"
-          alt="${item.title}"
-          loading="lazy"
-        >
-        <span
-          class="heart"
-          role="button"
-          aria-label="Add to wishlist"
-          aria-pressed="false"
-          onclick="event.stopPropagation(); toggleWishlist(this, '${item.id}')"
-        >♡</span>
-        <div class="card-badge">${item.condition}</div>
-        <h4>${item.title}</h4>
+      <div class="product-card animate">
+        <div class="pc-media" onclick="window.location.href='/client/listing.html?id=${item.id}'">
+          <img
+            src="${item.images?.[0] || '/eimages/placeholder.png'}"
+            alt="${item.title}"
+            loading="lazy"
+          >
+          <span class="card-badge">${item.condition}</span>
+          <span
+            class="heart"
+            role="button"
+            aria-label="Add to wishlist"
+            aria-pressed="false"
+            onclick="event.stopPropagation(); toggleWishlist(this, '${item.id}')"
+          >♡</span>
+        </div>
+        <p class="pc-category">
+          ${item.gender && item.gender !== 'unisex' ? (item.gender === 'men' ? 'Gents · ' : 'Ladies · ') : ''}${item.category || 'thrift'}
+        </p>
+        <h4 onclick="window.location.href='/client/listing.html?id=${item.id}'">${item.title}</h4>
         ${Number(item.review_count) > 0 ? `
           <p style="font-size:12px;color:#e8a33d;margin:2px 0">★ ${item.avg_rating} (${item.review_count})</p>
         ` : ''}
         <p class="price">${formatPrice(item.price)}</p>
         <p class="card-meta">${item.size ? 'Size ' + item.size : ''} · ${item.location || 'Kenya'}</p>
-        <button
-          class="add-to-cart-btn"
-          onclick="event.stopPropagation(); addToCart('${item.id}')"
-        >Add to Cart</button>
+        <div class="pc-actions">
+          <button
+            class="btn-view"
+            onclick="event.stopPropagation(); window.location.href='/client/listing.html?id=${item.id}'"
+          >View</button>
+          <button
+            class="btn-add"
+            onclick="event.stopPropagation(); addToCart('${item.id}')"
+          >Add</button>
+        </div>
       </div>
     `).join('');
 
@@ -106,7 +120,6 @@ export async function loadSingleListing() {
     document.getElementById('listingSize').textContent      = item.size || 'One size';
     document.getElementById('listingCategory').textContent  = item.category;
     document.getElementById('listingDesc').textContent      = item.description || 'No description.';
-    document.getElementById('sellerName').textContent       = item.full_name || 'Seller';
     document.getElementById('sellerLocation').textContent   = item.location || 'Kenya';
 
     window.__currentListing = item;

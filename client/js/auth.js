@@ -18,8 +18,7 @@ export async function register(email, password, metadata) {
         email,
         password,
         full_name: metadata.full_name,
-        phone:     metadata.phone,
-        role:      metadata.role
+        phone:     metadata.phone
       }),
       signal: controller.signal
     });
@@ -64,12 +63,10 @@ export async function login(email, password) {
     localStorage.setItem('3fters_token', data.token);
     localStorage.setItem('3fters_user',  JSON.stringify(data.user));
 
-    // Redirect based on role
-    if (data.user.role === 'seller') {
-      window.location.href = '/client/seller-dashboard.html';
-    } else {
-      window.location.href = '/index.html';
-    }
+    // Admins land on the admin panel; everyone else (buyers) goes home.
+    window.location.href = data.user.role === 'admin'
+      ? '/client/admin.html'
+      : '/index.html';
 
     return { data, error: null };
 
@@ -110,12 +107,6 @@ export function protectPage() {
   if (!getToken()) window.location.href = '/client/login.html';
 }
 
-export function protectSeller() {
-  const user = getUser();
-  if (!user) { window.location.href = '/client/login.html'; return; }
-  if (user.role !== 'seller') window.location.href = '/index.html';
-}
-
 // ========================
 // UPDATE NAV
 // ========================
@@ -127,10 +118,7 @@ export function updateNav() {
   if (user) {
     navEl.innerHTML = `
       ${user.role === 'admin' ? '<a href="/client/admin.html">Admin Panel</a>' : ''}
-      ${user.role === 'seller'
-        ? '<a href="/client/seller-dashboard.html">Dashboard</a>'
-        : '<a href="/client/cart.html">🛒 Cart</a>'
-      }
+      <a href="/client/cart.html">🛒 Cart</a>
       <span class="nav-user">Hi, ${user.full_name?.split(' ')[0]}</span>
       <button class="logout-btn" id="logoutNavBtn">Log out</button>
     `;

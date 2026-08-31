@@ -3,9 +3,18 @@ const router  = express.Router();
 const pool    = require('../supabase/client');
 const protect = require('../middleware/authMiddleware');
 
+// Only 3FTERS admins can create/edit/remove listings — buyers can browse
+// and purchase, but the catalog itself is managed centrally.
+function adminOnly(req, res, next) {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access only' });
+  }
+  next();
+}
+
 // GET all listings with filters
 router.get('/', async (req, res) => {
-  const { category, size, condition, search, min_price, max_price, sort } = req.query;
+  const { category, size, condition, search, min_price, max_price, sort, gender, style } = req.query;
 
   let query  = `
     SELECT l.*, 
@@ -29,6 +38,8 @@ router.get('/', async (req, res) => {
   if (search)    { query += ` AND l.title ILIKE $${i++}`;             params.push(`%${search}%`); }
   if (min_price) { query += ` AND l.price >= $${i++}`;                params.push(min_price); }
   if (max_price) { query += ` AND l.price <= $${i++}`;                params.push(max_price); }
+  if (gender)    { query += ` AND l.gender = $${i++}`;                params.push(gender); }
+  if (style)     { query += ` AND l.style = $${i++}`;                 params.push(style); }
 
   const sortMap = {
     newest:      'l.created_at DESC',
@@ -65,9 +76,9 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST create listing
-router.post('/', protect, async (req, res) => {
-  const { title, description, price, category, size, condition, images } = req.body;
+// POST create listing (admin only)
+router.post('/', protect, adminOnly, async (req, res) => {
+  const { title, description, price, category, size, condition, images, gender, style } = req.body;
 
   if (!title || !price) {
     return res.status(400).json({ error: 'Title and price are required' });
@@ -75,10 +86,10 @@ router.post('/', protect, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO listings (seller_id, title, description, price, category, size, condition, images)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO listings (seller_id, title, description, price, category, size, condition, images, gender, style)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [req.user.id, title, description, price, category, size, condition, images || []]
+      [req.user.id, title, description, price, category, size, condition, images || [], gender || 'unisex', style || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -86,33 +97,20 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// GET seller's own listings
-router.get('/seller/my-listings', protect, async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT * FROM listings WHERE seller_id = $1 ORDER BY created_at DESC',
-      [req.user.id]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// PATCH update listing
-router.patch('/:id', protect, async (req, res) => {
-  const { title, description, price, category, size, condition, status } = req.body;
+// PATCH update listing (admin only)
+router.patch('/:id', protect, adminOnly, async (req, res) => {
+  const { title, description, price, category, size, condition, status, gender, style } = req.body;
 
   try {
     const result = await pool.query(
       `UPDATE listings
-       SET title=$1, description=$2, price=$3, category=$4, size=$5, condition=$6, status=$7
-       WHERE id=$8 AND seller_id=$9
+       SET title=$1, description=$2, price=$3, category=$4, size=$5, condition=$6, status=$7, gender=$8, style=$9
+       WHERE id=$10
        RETURNING *`,
-      [title, description, price, category, size, condition, status, req.params.id, req.user.id]
+      [title, description, price, category, size, condition, status, gender || 'unisex', style || null, req.params.id]
     );
     if (!result.rows.length) {
-      return res.status(404).json({ error: 'Listing not found or not yours' });
+      return res.status(404).json({ error: 'Listing not found' });
     }
     res.json(result.rows[0]);
   } catch (err) {
@@ -120,13 +118,10 @@ router.patch('/:id', protect, async (req, res) => {
   }
 });
 
-// DELETE listing
-router.delete('/:id', protect, async (req, res) => {
+// DELETE listing (admin only)
+router.delete('/:id', protect, adminOnly, async (req, res) => {
   try {
-    await pool.query(
-      'DELETE FROM listings WHERE id=$1 AND seller_id=$2',
-      [req.params.id, req.user.id]
-    );
+    await pool.query('DELETE FROM listings WHERE id=$1', [req.params.id]);
     res.json({ message: 'Listing deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

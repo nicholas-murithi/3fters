@@ -48,22 +48,6 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label>I want to</label>
-      <div class="role-selector">
-        <div class="role-option selected" data-role="buyer">
-          <span>🛍️</span>
-          <strong>Buy</strong>
-          <p>Shop thrift finds</p>
-        </div>
-        <div class="role-option" data-role="seller">
-          <span>🏷️</span>
-          <strong>Sell</strong>
-          <p>List my thrift items</p>
-        </div>
-      </div>
-    </div>
-
     <button class="auth-btn" id="registerBtn">Create Account</button>
 
     <div class="auth-divider"><span>or</span></div>
@@ -76,16 +60,6 @@
 
 <script type="module">
   import { register } from './js/auth.js';
-
-  let selectedRole = 'buyer';
-
-  document.querySelectorAll('.role-option').forEach(option => {
-    option.addEventListener('click', () => {
-      document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
-      option.classList.add('selected');
-      selectedRole = option.dataset.role;
-    });
-  });
 
   document.getElementById('togglePw').addEventListener('click', () => {
     const input = document.getElementById('regPassword');
@@ -121,8 +95,7 @@
 
     const { error } = await register(email, password, {
       full_name: name,
-      phone,
-      role: selectedRole
+      phone
     });
 
     if (error) {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="3FTERS — Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
-  <title>3FTERS — Thrift Everything</title>
+  <title>3FTERS Thrift Everything</title>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -89,10 +89,8 @@
 
     <h4>Shop</h4>
     <a href="#trending" data-i18n="allItems">All Thrift Items</a>
-    <a href="#" onclick="filterByCategory(this,'shoes')" data-i18n="shoes">Thrifted Shoes</a>
-    <a href="#" onclick="filterByCategory(this,'tee')" data-i18n="tees">Vintage T-Shirts</a>
-    <a href="#" onclick="filterByCategory(this,'jacket')" data-i18n="jackets">Jackets</a>
-    <a href="#" onclick="filterByCategory(this,'accessories')" data-i18n="accessories">Accessories</a>
+    <a href="#" onclick="filterByGender(null,'men')">Gents</a>
+    <a href="#" onclick="filterByGender(null,'women')">Ladies</a>
 
     <h4>Account</h4>
     <div id="mobileNavAuth"></div>
@@ -164,26 +162,76 @@
   <section class="trending" id="trending">
     <div class="trending-header">
       <h2 data-i18n="trendingTitle">Trending Thrift Picks</h2>
-      <div class="filters" role="group" aria-label="Filter by category">
-        <button class="active" onclick="filterByCategory(this, '')" data-i18n="filterAll">All</button>
-        <button onclick="filterByCategory(this, 'shoes')" data-i18n="filterShoes">Shoes</button>
-        <button onclick="filterByCategory(this, 'tee')" data-i18n="filterTees">Vintage Tees</button>
-        <button onclick="filterByCategory(this, 'cap')" data-i18n="filterCaps">Caps</button>
-        <button onclick="filterByCategory(this, 'jacket')" data-i18n="filterJackets">Jackets</button>
-        <button onclick="filterByCategory(this, 'streetwear')" data-i18n="filterStreetwear">Streetwear</button>
-      </div>
+    </div>
+
+    <!-- GENDER -->
+    <div class="filters gender-filters" role="group" aria-label="Filter by gender">
+      <button class="active" onclick="filterByGender(this, '')">All</button>
+      <button onclick="filterByGender(this, 'men')">Gents</button>
+      <button onclick="filterByGender(this, 'women')">Ladies</button>
+    </div>
+
+    <!-- STYLE / OCCASION -->
+    <div class="filters style-filters" role="group" aria-label="Filter by style">
+      <button class="active" onclick="filterByStyle(this, '')">All Styles</button>
+      <button onclick="filterByStyle(this, 'campus')">Campus / Comrade Wear</button>
+      <button onclick="filterByStyle(this, 'corporate')">Corporate Wear</button>
+      <button onclick="filterByStyle(this, 'casual')">Casual</button>
+      <button onclick="filterByStyle(this, 'streetwear')">Streetwear</button>
+    </div>
+
+    <!-- CATEGORY -->
+    <div class="filters category-filters" role="group" aria-label="Filter by category">
+      <button class="active" onclick="filterByCategory(this, '')" data-i18n="filterAll">All</button>
+      <button onclick="filterByCategory(this, 'jeans')">Jeans</button>
+      <button onclick="filterByCategory(this, 'sweatpants')">Sweatpants</button>
+      <button onclick="filterByCategory(this, 'official-pants')">Official Pants</button>
+      <button onclick="filterByCategory(this, 'sporttracks')">Sport Tracks</button>
+      <button onclick="filterByCategory(this, 'shirts')">Shirts</button>
+      <button onclick="filterByCategory(this, 'tee')" data-i18n="filterTees">Vintage Tees</button>
+      <button onclick="filterByCategory(this, 'shorts')">Shorts</button>
+      <button onclick="filterByCategory(this, 'jacket')" data-i18n="filterJackets">Jackets</button>
+      <button onclick="filterByCategory(this, 'streetwear')" data-i18n="filterStreetwear">Streetwear</button>
+      <button onclick="filterByCategory(this, 'shoes')" data-i18n="filterShoes">Casual Shoes</button>
+      <button onclick="filterByCategory(this, 'official-shoes')">Official Shoes</button>
+      <button onclick="filterByCategory(this, 'socks')">Socks</button>
+      <button onclick="filterByCategory(this, 'belts')">Belts</button>
+      <button onclick="filterByCategory(this, 'ties')">Ties</button>
+      <button onclick="filterByCategory(this, 'cap')" data-i18n="filterCaps">Caps</button>
     </div>
 
     <div class="filter-bar">
       <input type="text" id="searchInput" placeholder=" Search thrift finds..." data-i18n-placeholder="searchPlaceholder">
       <select id="filterCategory" style="display:none">
         <option value="">All</option>
-        <option value="shoes">Shoes</option>
-        <option value="jacket">Jacket</option>
+        <option value="jeans">Jeans</option>
+        <option value="sweatpants">Sweatpants</option>
+        <option value="official-pants">Official Pants</option>
+        <option value="sporttracks">Sport Tracks</option>
+        <option value="shirts">Shirts</option>
         <option value="tee">Vintage Tee</option>
-        <option value="cap">Cap</option>
+        <option value="shorts">Shorts</option>
+        <option value="jacket">Jacket</option>
         <option value="streetwear">Streetwear</option>
-        <option value="accessories">Accessories</option>
+        <option value="shoes">Casual Shoes</option>
+        <option value="official-shoes">Official Shoes</option>
+        <option value="socks">Socks</option>
+        <option value="belts">Belts</option>
+        <option value="ties">Ties</option>
+        <option value="cap">Cap</option>
+        <option value="accessories">Other Accessories</option>
+      </select>
+      <select id="filterGender" style="display:none">
+        <option value="">All</option>
+        <option value="men">Gents</option>
+        <option value="women">Ladies</option>
+      </select>
+      <select id="filterStyle" style="display:none">
+        <option value="">All Styles</option>
+        <option value="campus">Campus / Comrade Wear</option>
+        <option value="corporate">Corporate Wear</option>
+        <option value="casual">Casual</option>
+        <option value="streetwear">Streetwear</option>
       </select>
       <select id="filterSize">
         <option value="" data-i18n="anySize">All Sizes</option>
@@ -222,17 +270,14 @@
     <h2 data-i18n="featuresTitle">Why thrifters<br>love 3FTERS</h2>
     <div class="feature-grid">
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">❤</div>
         <h4 data-i18n="feature1Title">Curated with Care</h4>
         <p data-i18n="feature1Body">Every thrift item is cleaned, checked, and carefully selected.</p>
       </div>
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">📞</div>
         <h4 data-i18n="feature2Title">Friendly Support</h4>
         <p data-i18n="feature2Body">Need help choosing sizes or styles? We've got you.</p>
       </div>
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">🔄</div>
         <h4 data-i18n="feature3Title">Easy Returns</h4>
         <p data-i18n="feature3Body">Simple and stress-free returns on thrift purchases.</p>
       </div>
@@ -319,9 +364,6 @@
     // Only show links that match the logged-in user's actual role
     if (mobileRoleLinks) {
       let links = '';
-      if (user.role === 'seller') {
-        links += `<a href="client/seller-dashboard.html" data-i18n="sellerDash">Seller Dashboard</a>`;
-      }
       if (user.role === 'admin') {
         links += `<a href="client/admin.html" data-i18n="adminPanel">Admin Panel</a>`;
       }
@@ -341,16 +383,34 @@
 
   // Category filter
   window.filterByCategory = function(btn, value) {
-    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
-    if (btn.classList) btn.classList.add('active');
+    document.querySelectorAll('.category-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
     document.getElementById('filterCategory').value = value;
+    loadListings();
+    document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Gender filter (Gents / Ladies)
+  window.filterByGender = function(btn, value) {
+    document.querySelectorAll('.gender-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
+    document.getElementById('filterGender').value = value;
+    loadListings();
+    document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Style filter (Campus / Corporate / Casual / Streetwear)
+  window.filterByStyle = function(btn, value) {
+    document.querySelectorAll('.style-filters button').forEach(b => b.classList.remove('active'));
+    if (btn?.classList) btn.classList.add('active');
+    document.getElementById('filterStyle').value = value;
     loadListings();
     document.getElementById('trending')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   // Search + filter
   let debounce;
-  ['searchInput', 'filterSize', 'filterCondition'].forEach(id => {
+  ['searchInput', 'filterSize', 'filterCondition', 'filterGender', 'filterStyle'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => {
       clearTimeout(debounce);
       debounce = setTimeout(loadListings, 400);

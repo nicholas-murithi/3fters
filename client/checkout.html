@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 30px;
+    }
+    @media (max-width: 768px) {
+      main { padding: 24px 16px !important; }
+      .checkout-grid { grid-template-columns: 1fr; gap: 20px; }
+      #payBtn { font-size: 15px; padding: 13px 10px; white-space: nowrap; }
+      .summary-total { display: flex; justify-content: space-between; align-items: center; }
+    }
+  </style>
 </head>
 <body>
 
@@ -18,10 +31,10 @@
 <main style="max-width:900px;margin:0 auto;padding:40px 20px">
   <h1 style="margin-bottom:10px">Checkout</h1>
   <p style="color:#777;margin-bottom:30px;font-size:14px">
-    Complete your order securely via M-Pesa
+    Complete your order via WhatsApp
   </p>
 
-  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:30px">
+  <div class="checkout-grid">
 
     <!-- ORDER SUMMARY -->
     <section>
@@ -33,22 +46,20 @@
         <strong id="checkoutTotal" style="font-size:20px">KSh 0</strong>
       </div>
 
-      <!-- SECURITY NOTE -->
-      <div style="margin-top:20px;padding:15px;background:#f8f5f2;border-radius:12px;
+      <div style="margin-top:20px;padding:15px;background:#05cf0573;border-radius:12px;
         border-left:3px solid #8b5e3c;font-size:13px;color:#555;line-height:1.6">
-        🔒 <strong>Secure Payment</strong><br>
-        Your payment is processed securely via M-Pesa.
-        Never share your M-Pesa PIN with anyone.
-        3FTERS will never ask for your PIN.
+         <strong>Pay via WhatsApp</strong><br>
+        Your order will be sent to us on WhatsApp. We'll confirm your total
+        and send you M-Pesa payment instructions directly there.
       </div>
     </section>
 
-    <!-- PAYMENT FORM -->
+    <!-- CHECKOUT FORM -->
     <section style="background:white;padding:25px;border-radius:20px;
       box-shadow:0 4px 20px rgba(0,0,0,0.06)">
-      <h2 style="margin-bottom:5px;font-size:18px">Pay with M-Pesa</h2>
+      <h2 style="margin-bottom:5px;font-size:18px">Complete your order</h2>
       <p style="font-size:13px;color:#777;margin-bottom:20px">
-        You will receive an STK push on your phone
+        We'll open WhatsApp with your order details pre filled
       </p>
 
       <div class="form-group">
@@ -58,34 +69,32 @@
       </div>
 
       <div class="form-group">
-        <label>M-Pesa Phone Number</label>
-        <input type="tel" id="mpesaPhone" placeholder="0712345678" maxlength="12">
+        <label>Your Phone Number</label>
+        <input type="tel" id="buyerPhone" placeholder="0712345678" maxlength="12">
         <small style="color:#777;font-size:12px;margin-top:5px;display:block">
-          Enter the number registered with M-Pesa
+          So we can reach you about delivery and payment
         </small>
       </div>
 
-      <button class="auth-btn" id="payBtn">
-         Pay Now via M-Pesa
+      <button class="auth-btn" id="payBtn" style="background:#25D366;color:#ffffff;border-color:#25D366">
+         Checkout via WhatsApp
       </button>
 
-      <!-- PAYMENT STATUS -->
       <div id="paymentStatus" style="display:none;margin-top:15px;
         padding:15px;border-radius:12px;font-size:14px;line-height:1.6">
       </div>
 
-      <!-- STEPS -->
       <div style="margin-top:20px;padding:15px;background:#f9f9f9;
         border-radius:12px;font-size:12px;color:#777">
         <strong style="color:#111;display:block;margin-bottom:8px">
-          How M-Pesa payment works:
+          How WhatsApp checkout works:
         </strong>
         <div style="display:flex;flex-direction:column;gap:6px">
-          <span>1️⃣ Click Pay Now</span>
-          <span>2️⃣ Check your phone for M-Pesa prompt</span>
-          <span>3️⃣ Enter your M-Pesa PIN</span>
-          <span>4️⃣ You'll get an SMS confirmation</span>
-          <span>5️⃣ Seller ships your item</span>
+          <span>1️⃣ Click "Checkout via WhatsApp"</span>
+          <span>2️⃣ Your order opens as a prefilled WhatsApp message</span>
+          <span>3️⃣ Hit send  we'll reply with M-Pesa payment details</span>
+          <span>4️⃣ Pay, and we'll confirm your order</span>
+          <span>5️⃣ 3FTERS ships your item</span>
         </div>
       </div>
     </section>
@@ -94,25 +103,28 @@
 </main>
 
 <script type="module">
-  import { protectPage, updateNav, getToken } from './js/auth.js';
+  import { protectPage, updateNav, getToken, getUser } from './js/auth.js';
 
   protectPage();
   updateNav();
+
+  
+  
+  const WHATSAPP_NUMBER = '254721153625';
 
   const API = window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
   : 'https://threefters.onrender.com/api';
   const token = getToken();
+  const user  = getUser();
   const cart  = JSON.parse(localStorage.getItem('3fters_cart') || '[]');
 
   let grandTotal = 0;
+  let cartItems  = [];
   const itemsEl  = document.getElementById('checkoutItems');
   const totalEl  = document.getElementById('checkoutTotal');
 
-  // ========================
-  // LOAD CART ITEMS
-  // ========================
   async function loadCheckout() {
     if (!cart.length) {
       itemsEl.innerHTML = `
@@ -134,9 +146,9 @@
       )
     );
 
-    const valid = items.filter(Boolean);
+    cartItems = items.filter(Boolean);
 
-    valid.forEach(item => {
+    cartItems.forEach(item => {
       grandTotal += Number(item.price);
       itemsEl.innerHTML += `
         <div style="display:flex;gap:12px;align-items:center;
@@ -164,47 +176,44 @@
 
   loadCheckout();
 
-  // ========================
-  // PAY BUTTON
-  // ========================
+  function buildWhatsAppMessage(address, phone) {
+    const lines = [
+      `Hi 3FTERS! I'd like to order:`,
+      ``,
+      ...cartItems.map(item =>
+        `• ${item.title}${item.size ? ' (Size ' + item.size + ')' : ''} — KSh ${Number(item.price).toLocaleString()}`
+      ),
+      ``,
+      `Total: KSh ${grandTotal.toLocaleString()}`,
+      ``,
+      `Name: ${user?.full_name || '—'}`,
+      `Phone: ${phone}`,
+      `Delivery address: ${address}`
+    ];
+    return lines.join('\n');
+  }
+
   document.getElementById('payBtn').addEventListener('click', async () => {
-    const phone    = document.getElementById('mpesaPhone').value.trim();
+    const phone    = document.getElementById('buyerPhone').value.trim();
     const address  = document.getElementById('deliveryAddress').value.trim();
     const btn      = document.getElementById('payBtn');
     const statusEl = document.getElementById('paymentStatus');
 
-    // Validate
     if (!address) {
       alert('Please enter your delivery address');
       return;
     }
-
-    if (!phone) {
-      alert('Please enter your M-Pesa phone number');
-      return;
-    }
-
-    if (phone.length < 9) {
+    if (!phone || phone.length < 9) {
       alert('Please enter a valid phone number e.g. 0712345678');
       return;
     }
 
-    // Format phone: 0712... → 254712...
-    let formatted = phone;
-    if (formatted.startsWith('0')) {
-      formatted = '254' + formatted.slice(1);
-    }
-    if (formatted.startsWith('+')) {
-      formatted = formatted.slice(1);
-    }
-
-    btn.textContent = ' Sending M-Pesa prompt...';
+    btn.textContent = 'Placing order...';
     btn.disabled    = true;
     statusEl.style.display = 'none';
 
     try {
-      // Step 1 — Create orders for each cart item
-      for (const item of cart) {
+      for (const item of cartItems) {
         const orderRes = await fetch(`${API}/orders`, {
           method:  'POST',
           headers: {
@@ -218,108 +227,34 @@
         });
 
         if (!orderRes.ok) {
-          const err = await orderRes.json();
+          const err = await orderRes.json().catch(() => ({}));
           console.warn('Order error:', err);
         }
       }
 
-      // Step 2 — Trigger STK push
-      const res = await fetch(`${API}/payments/mpesa/stk-push`, {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          phone:  formatted,
-          amount: grandTotal
-        })
-      });
+      const message = buildWhatsAppMessage(address, phone);
+      const waUrl    = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
 
-      const data = await res.json();
+      localStorage.removeItem('3fters_cart');
 
-      if (res.ok) {
-        // Show success message
-        statusEl.style.display    = 'block';
-        statusEl.style.background = '#f0fdf4';
-        statusEl.style.color      = '#16a34a';
-        statusEl.innerHTML = `
-          ✅ M-Pesa prompt sent to <strong>${phone}</strong>!<br>
-          <small style="color:#555">
-            Enter your M-Pesa PIN on your phone to complete payment.
-          </small>
-        `;
+      statusEl.style.display    = 'block';
+      statusEl.style.background = '#f0fdf4';
+      statusEl.style.color      = '#16a34a';
+      statusEl.innerHTML = `
+         <strong>Order placed!</strong><br>
+        We opened WhatsApp with your order details just hit send.
+        We'll reply with M-Pesa payment instructions.
+      `;
 
-        btn.textContent = ' Waiting for payment...';
+      btn.textContent = '✅ Order sent to WhatsApp';
 
-        // Step 3 — Poll for payment confirmation
-        const checkoutId = data.checkoutRequestId;
-        let attempts     = 0;
-
-        const poll = setInterval(async () => {
-          attempts++;
-
-          try {
-            const statusRes = await fetch(`${API}/payments/mpesa/check-status`, {
-              method:  'POST',
-              headers: {
-                'Content-Type':  'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                checkout_request_id: checkoutId
-              })
-            });
-
-            const statusData = await statusRes.json();
-            console.log('Payment status:', statusData);
-
-            // ResultCode 0 = success
-            if (statusData.ResultCode === '0' || statusData.ResultCode === 0) {
-              clearInterval(poll);
-              localStorage.removeItem('3fters_cart');
-
-              statusEl.innerHTML = `
-                ✅ <strong>Payment confirmed!</strong><br>
-                Your order is being processed.
-                The seller will ship your item soon.<br>
-                <small style="color:#555">
-                  You will receive an SMS confirmation shortly.
-                </small>
-              `;
-
-              btn.textContent = '✅ Payment Complete!';
-
-              setTimeout(() => {
-                window.location.href = 'orders.html';
-              }, 3000);
-            }
-
-            // Stop after 12 attempts (1 minute)
-            if (attempts >= 12) {
-              clearInterval(poll);
-              statusEl.innerHTML = `
-                ⏳ Payment is taking longer than expected.<br>
-                <small style="color:#555">
-                  Check your orders page to confirm payment status.
-                </small>
-              `;
-              btn.textContent = 'View My Orders';
-              btn.disabled    = false;
-              btn.onclick     = () => window.location.href = 'orders.html';
-            }
-
-          } catch (pollErr) {
-            console.log('Poll error:', pollErr);
-          }
-        }, 5000); // Check every 5 seconds
-
-      } else {
-        throw new Error(data.error || data.details || 'failed');
-      }
+      setTimeout(() => {
+        window.location.href = 'orders.html';
+      }, 2500);
 
     } catch (err) {
-      console.error('Payment error:', err);
+      console.error('Checkout error:', err);
       btn.textContent = '🔄 Try Again';
       btn.disabled    = false;
 
@@ -327,9 +262,9 @@
       statusEl.style.background = '#fdf0f0';
       statusEl.style.color      = '#c0392b';
       statusEl.innerHTML = `
-        ❌ ${err.message || 'Payment failed. Please try again.'}<br>
+         ${err.message || 'Something went wrong. Please try again.'}<br>
         <small style="color:#777">
-          if the issue persists, contact support at support@threefters.com
+          If the issue persists, contact support at support@threefters.com
         </small>
       `;
     }
