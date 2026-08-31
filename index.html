@@ -478,5 +478,128 @@
   window.addEventListener('3fters:currency-changed', loadListings);
 </script>
 
+<!-- 3FTERS CHAT WIDGET -->
+<button class="chat-toggle" id="chatToggle" aria-label="Chat with 3FTERS">
+  <span class="chat-toggle-badge"></span>
+</button>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-avatar">3fters</div>
+    <div class="chat-header-text">
+      <strong>3FTERS Assistant</strong>
+      <div class="chat-status"><span class="chat-status-dot"></span> Online now</div>
+    </div>
+    <button id="chatClose" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-bubble bot">
+      Hi!  I'm the 3FTERS assistant. Ask me about our thrift finds, sizes,
+      categories, or how checkout works.
+    </div>
+  </div>
+  <div class="chat-suggestions" id="chatSuggestions">
+    <button class="chat-suggestion-chip">What categories do you have?</button>
+    <button class="chat-suggestion-chip">How does checkout work?</button>
+    <button class="chat-suggestion-chip">Do you have Gents wear?</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Ask about 3FTERS..." maxlength="500">
+    <button id="chatSend" aria-label="Send">➤</button>
+  </div>
+</div>
+
+<script type="module">
+  const CHAT_API = window.location.hostname === 'localhost' ||
+              window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api/chat'
+    : 'https://threefters.onrender.com/api/chat';
+
+  const toggle       = document.getElementById('chatToggle');
+  const panel        = document.getElementById('chatPanel');
+  const closeBtn      = document.getElementById('chatClose');
+  const messages      = document.getElementById('chatMessages');
+  const input         = document.getElementById('chatInput');
+  const sendBtn       = document.getElementById('chatSend');
+  const suggestions   = document.getElementById('chatSuggestions');
+
+  let history = [];
+
+  toggle.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) input.focus();
+  });
+  closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+
+  document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      input.value = chip.textContent;
+      sendMessage();
+    });
+  });
+
+  function addBubble(text, sender) {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${sender}`;
+    bubble.textContent = text;
+    messages.appendChild(bubble);
+    messages.scrollTop = messages.scrollHeight;
+    return bubble;
+  }
+
+  function addTypingBubble() {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot typing';
+    bubble.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+    messages.appendChild(bubble);
+    messages.scrollTop = messages.scrollHeight;
+    return bubble;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (suggestions) suggestions.style.display = 'none';
+
+    addBubble(text, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+
+    const typingBubble = addTypingBubble();
+
+    try {
+      const res  = await fetch(`${CHAT_API}/message`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ message: text, history })
+      });
+      const data = await res.json();
+
+      typingBubble.remove();
+
+      if (!res.ok) {
+        addBubble(data.error || "Sorry, something went wrong. Please try again.", 'bot');
+        return;
+      }
+
+      addBubble(data.reply, 'bot');
+      history.push({ role: 'user', content: text });
+      history.push({ role: 'assistant', content: data.reply });
+
+    } catch (err) {
+      typingBubble.remove();
+      addBubble("Sorry, I couldn't connect right now. Please try again shortly.", 'bot');
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>
+
 </body>
 </html>
