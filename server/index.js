@@ -13,6 +13,7 @@ const chatRoutes    = require('./routes/chat');
 
 const app = express();
 
+app.set('trust proxy', 1); // needed on Render so req.ip is the real visitor IP, not the proxy's
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 

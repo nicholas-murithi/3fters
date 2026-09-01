@@ -106,7 +106,27 @@ router.get('/seller-orders', protect, async (req, res) => {
 router.patch('/:id/status', protect, async (req, res) => {
   const { status } = req.body;
 
+  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered'];
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
   try {
+    // Look up the order first to check ownership
+    const existing = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+
+    if (!existing.rows.length) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = existing.rows[0];
+    const isOwner = order.seller_id === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Not authorized to update this order' });
+    }
+
     const result = await pool.query(
       `UPDATE orders SET status=$1 WHERE id=$2
        RETURNING *`,

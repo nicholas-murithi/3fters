@@ -399,7 +399,14 @@
               <td>${o.buyer_name || '—'}</td>
               <td>KSh ${Number(o.amount).toLocaleString()}</td>
               <td>${o.mpesa_code || '—'}</td>
-              <td><span class="badge ${o.status}">${o.status}</span></td>
+              <td>
+                <select onchange="updateOrderStatus('${o.id}', this.value)"
+                  style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px">
+                  ${['pending','paid','shipped','delivered'].map(s => `
+                    <option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>
+                  `).join('')}
+                </select>
+              </td>
               <td>${new Date(o.created_at).toLocaleDateString()}</td>
             </tr>
           `).join('')}
@@ -408,6 +415,24 @@
       </div>
     `;
   }
+
+  // ========================
+  // UPDATE ORDER STATUS (manual, for WhatsApp checkout flow)
+  // ========================
+  window.updateOrderStatus = async function(id, status) {
+    const res = await fetch(`${API}/orders/${id}/status`, {
+      method:  'PATCH',
+      headers: authHeaders,
+      body:    JSON.stringify({ status })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Failed to update order status');
+      loadStats();
+      return;
+    }
+    loadStats();
+  };
 
   // ========================
   // DELETE USER

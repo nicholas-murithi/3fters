@@ -41,10 +41,45 @@ FACTS ABOUT 3FTERS (use these, don't invent extra policies):
   customer to check the website directly or message 3FTERS on WhatsApp,
   rather than guessing.
 
-Keep answers short, warm, and helpful — a couple of sentences unless more
-detail is genuinely needed. Do not use markdown headers or long bullet
-lists for simple questions; write like a friendly human support agent.
+Keep answers VERY short — 1 to 2 short sentences, under 40 words total,
+unless the customer explicitly asks for more detail. Do not use markdown
+headers or bullet lists for simple questions; write like a friendly human
+support agent texting back quickly.
 `.trim();
+
+// ── Simple in-memory rate limiter: 4 messages per hour per visitor ──
+// Note: this resets if the server restarts/redeploys (e.g. Render free
+// tier idling out), and tracks by IP so people sharing a network share
+// a limit. Good enough for a small store; swap for a DB-backed limiter
+// if that becomes a problem.
+const RATE_LIMIT       = 4;
+const RATE_WINDOW_MS   = 60 * 60 * 1000; // 1 hour
+const requestLog       = new Map(); // ip -> [timestamps]
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const timestamps = (requestLog.get(ip) || []).filter(t => now - t < RATE_WINDOW_MS);
+
+  if (timestamps.length >= RATE_LIMIT) {
+    requestLog.set(ip, timestamps);
+    const retryAfterMs = RATE_WINDOW_MS - (now - timestamps[0]);
+    return { limited: true, retryAfterMinutes: Math.ceil(retryAfterMs / 60000) };
+  }
+
+  timestamps.push(now);
+  requestLog.set(ip, timestamps);
+  return { limited: false };
+}
+
+// Periodic cleanup so the Map doesn't grow forever
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, timestamps] of requestLog.entries()) {
+    const fresh = timestamps.filter(t => now - t < RATE_WINDOW_MS);
+    if (fresh.length) requestLog.set(ip, fresh);
+    else requestLog.delete(ip);
+  }
+}, 15 * 60 * 1000);
 
 router.post('/message', async (req, res) => {
   const { message, history } = req.body;
@@ -57,6 +92,15 @@ router.post('/message', async (req, res) => {
     return res.status(500).json({ error: 'Chat is not configured on the server yet' });
   }
 
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip;
+  const { limited, retryAfterMinutes } = isRateLimited(ip);
+
+  if (limited) {
+    return res.status(429).json({
+      error: `You've reached the chat limit for now. Please try again in about ${retryAfterMinutes} minute(s).`
+    });
+  }
+
   // history: [{ role: 'user'|'assistant', content: '...' }, ...] — optional,
   // last ~10 turns is plenty of context for a support bot.
   const messages = Array.isArray(history) ? history.slice(-10) : [];
@@ -67,7 +111,7 @@ router.post('/message', async (req, res) => {
       'https://api.anthropic.com/v1/messages',
       {
         model: 'claude-sonnet-4-6',
-        max_tokens: 300,
+        max_tokens: 120,
         system: SYSTEM_PROMPT,
         messages
       },
