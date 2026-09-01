@@ -6,6 +6,7 @@
   <meta name="description" content="3FTERS — Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
   <title>3FTERS Thrift Everything</title>
   <link rel="stylesheet" href="styles.css"/>
+   <link rel="stylesheet" href="skeuo-theme.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -100,8 +101,8 @@
 
     <h4>Info</h4>
     <a href="client/about.html" data-i18n="about">About 3FTERS</a>
-    <a href="#" data-i18n="contactUs">Contact Us</a>
-    <a href="#" data-i18n="faq">FAQ</a>
+    <a href="client/about.html#contact" data-i18n="contactUs">Contact Us</a>
+    <a href="#" data-i18n="faq" onclick="event.preventDefault(); document.getElementById('chatToggle').click();">FAQ</a>
   </nav>
 </div>
 
@@ -111,8 +112,12 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-main animate">
-      <!-- Full background image -->
-      <img src="eimages/herro.png" loading="lazy" alt="Model wearing thrifted outfit" class="hero-bg-img">
+      <!-- Rotating background images -->
+      <div class="hero-slideshow" id="heroSlideshow">
+        <img src="eimages/herro.png" loading="lazy" alt="Model wearing thrifted outfit" class="hero-bg-img active">
+        <img src="eimages/hero222.jpeg" loading="lazy" alt="Streetwear thrift look" class="hero-bg-img">
+        <img src="eimages/hero33.jpeg" loading="lazy" alt="Vintage thrift look" class="hero-bg-img">
+      </div>
       <!-- Overlay -->
       <div class="hero-overlay"></div>
       <!-- Content on top -->
@@ -330,13 +335,15 @@
     <div>
       <h4>OTHER</h4>
       <a href="client/orders.html">Track Order</a>
-      <a href="#">FAQ</a>
+      <a href="#" onclick="event.preventDefault(); document.getElementById('chatToggle').click();">FAQ</a>
       <a href="client/about.html">About 3FTERS</a>
-      <a href="#">Contact Us</a>
+      <a href="client/about.html#contact">Contact Us</a>
       <a href="#">Terms & Conditions</a>
     </div>
      </div>
-      <p class="footer-credit">Made by <a href="https://nicholasdevs.vercel.app/" target="_blank" rel="noopener">nicholasdevs</a></p>
+       <p class="footer-credit">
+        Stitched together by <a href="https://nicholasdevs.vercel.app/" target="_blank" rel="noopener">nicholasdevs</a>
+      </p>
      </div>
   </div>
 </footer>
@@ -350,6 +357,18 @@
   updateNav();
   updateCartCount();
   loadListings();
+
+  // Hero slideshow — cycle background images every 5s
+  (function heroSlideshow() {
+    const slides = document.querySelectorAll('#heroSlideshow .hero-bg-img');
+    if (slides.length < 2) return;
+    let current = 0;
+    setInterval(() => {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 5000);
+  })();
 
   // Update top bar auth
   const user = getUser();

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us — 3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/auth.css"/>
+  <link rel="stylesheet" href="skeuo-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">  <style>
+    .about-why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 600px) {
+      .about-why-grid { grid-template-columns: 1fr; }
+      main { padding: 30px 16px 60px !important; }
+      h1 { font-size: 28px !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><a href="../index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main style="max-width:800px;margin:0 auto;padding:50px 20px 80px">
+
+  <section style="margin-bottom:45px">
+    <p style="text-transform:uppercase;letter-spacing:2px;font-size:12px;color:#8b5e3c;font-weight:600;margin-bottom:10px">
+      Our Story
+    </p>
+    <h1 style="font-size:38px;line-height:1.2;margin-bottom:18px">
+      Good clothes shouldn't cost the earth.
+    </h1>
+    <p style="font-size:16px;line-height:1.7;color:#444">
+      3FTERS started as a simple idea: the best pieces in your closet are rarely brand new.
+      We hunt through streetwear, vintage, and everyday staples so you don't have to 
+      curating thrifted finds that are affordable, one-of-one, and easier on the planet
+      than another fast-fashion order.
+    </p>
+  </section>
+
+  <section style="margin-bottom:45px">
+    <h2 style="font-size:24px;margin-bottom:14px">What we do</h2>
+    <p style="font-size:15px;line-height:1.7;color:#444">
+      Every item we list is sourced, checked, and priced by hand  no mystery bundles.
+      We sort by style and gender so you can shop for exactly the look you're after,
+      whether that's clean streetwear, campus wear, or everyday vintage staples.
+    </p>
+  </section>
+
+  <section style="margin-bottom:45px">
+    <h2 style="font-size:24px;margin-bottom:14px">Why thrift</h2>
+    <div class="about-why-grid">
+      <div style="background:white;border-radius:16px;padding:22px;text-align:center">
+        <h4 style="margin-bottom:8px;font-size:15px">Affordable</h4>
+        <p style="font-size:13px;color:#666;line-height:1.5">Quality pieces at a fraction of retail price.</p>
+      </div>
+      <div style="background:white;border-radius:16px;padding:22px;text-align:center">
+        <h4 style="margin-bottom:8px;font-size:15px">Sustainable</h4>
+        <p style="font-size:13px;color:#666;line-height:1.5">Every purchase keeps a garment out of landfill.</p>
+      </div>
+      <div style="background:white;border-radius:16px;padding:22px;text-align:center">
+        <h4 style="margin-bottom:8px;font-size:15px">Unique</h4>
+        <p style="font-size:13px;color:#666;line-height:1.5">One piece, one buyer  no two hauls look alike.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 style="font-size:24px;margin-bottom:14px">Get in touch</h2>
+    <p style="font-size:15px;line-height:1.7;color:#444;margin-bottom:20px">
+      Have a question about an order, a listing, or just want to say hi?
+      Reach out and we'll get back to you  or use the chat bubble in the corner
+      for a quick answer any time.
+    </p>
+    <a href="../index.html#trending" class="auth-btn" style="display:inline-block;text-decoration:none">
+      Start Shopping
+    </a>
+  </section>
+
+</main>
+
+<script type="module">
+  import { updateNav } from './js/auth.js';
+  updateNav();
+</script>
+
+</body>
+</html>

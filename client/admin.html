@@ -7,6 +7,20 @@
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+    .admin-table { min-width: 640px; }
+
+    @media (max-width: 768px) {
+      #statsGrid { gap: 10px !important; padding: 15px !important; }
+      #statsGrid > div { padding: 12px 6px !important; }
+      #statsGrid > div > div:first-child { font-size: 18px !important; }
+      #statsGrid > div > p { font-size: 10px !important; margin-top: 3px !important; }
+      header.header { padding: 12px 16px !important; flex-wrap: wrap; gap: 10px; }
+      header.header nav { gap: 10px !important; flex-wrap: wrap; }
+      main { padding: 0 16px 30px !important; }
+    }
+  </style>
 </head>
 <body style="background:#f5f5f5;padding:0">
 
@@ -22,7 +36,7 @@
 </header>
 
 <!-- STATS -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+<div id="statsGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
   padding:25px 30px;max-width:1200px;margin:0 auto">
   <div style="background:white;border-radius:16px;padding:20px;text-align:center">
     <div id="statUsers" style="font-size:32px;font-weight:700">—</div>
@@ -274,6 +288,7 @@
   // ========================
   function renderUsers(users) {
     document.getElementById('usersList').innerHTML = `
+      <div class="table-scroll">
       <table class="admin-table">
         <thead>
           <tr>
@@ -311,6 +326,7 @@
           `).join('')}
         </tbody>
       </table>
+      </div>
     `;
   }
 
@@ -319,6 +335,7 @@
   // ========================
   function renderListings(listings) {
     document.getElementById('listingsList').innerHTML = `
+      <div class="table-scroll">
       <table class="admin-table">
         <thead>
           <tr>
@@ -354,6 +371,7 @@
           `).join('')}
         </tbody>
       </table>
+      </div>
     `;
   }
 
@@ -362,6 +380,7 @@
   // ========================
   function renderOrders(orders) {
     document.getElementById('ordersList').innerHTML = `
+      <div class="table-scroll">
       <table class="admin-table">
         <thead>
           <tr>
@@ -386,6 +405,7 @@
           `).join('')}
         </tbody>
       </table>
+      </div>
     `;
   }
 

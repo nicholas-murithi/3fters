@@ -1,0 +1,128 @@
+/* ==========================================================================
+   3fters — SKEUOMORPHIC THEME LAYER
+   Load this AFTER styles.css (add before </head> as a second <link>).
+   Scope: buttons, cards, search bar, feature panels, chat widget.
+   Background, top bar, and header are left as original.
+   ========================================================================== */
+
+:root {
+  --leather: #8b5e3c;
+  --leather-dark: #5a3a22;
+  --leather-shadow: #3c2413;
+  --brass: #cba15a;
+  --brass-light: #e9cd8f;
+  --brass-dark: #8a6a2f;
+  --canvas: #efe4cf;
+  --canvas-dark: #ddccA8;
+  --stitch: #f4e9c9;
+  --tag-paper: #f4ecd8;
+}
+
+/* ---- Dropdown menu: a folded fabric swatch card ---- */
+.dropdown-trigger {
+  background: linear-gradient(to bottom, #fffaf0, #f0e2c2);
+  border: 1px solid rgba(90,58,34,0.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.2);
+  color: var(--leather-dark);
+}
+.dropdown-menu {
+  background: var(--tag-paper);
+  border: 1px solid rgba(90,58,34,0.3);
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.35), inset 0 0 0 4px rgba(255,255,255,0.4);
+}
+
+/* ---- Buttons: brass hardware, pressable ---- */
+.filters button,
+.add-to-cart-btn {
+  border: 1px solid var(--brass-dark);
+  background: linear-gradient(to bottom, #fdf6e3, #e9d9ae 45%, #d8c186);
+  color: var(--leather-dark);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    inset 0 -2px 2px rgba(0,0,0,0.12),
+    0 2px 3px rgba(0,0,0,0.25);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+.filters button:hover { border-color: var(--leather-dark); }
+.filters button:active,
+.add-to-cart-btn:active {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
+  transform: translateY(1px);
+}
+
+.filters .active {
+  background: linear-gradient(to bottom, var(--leather-dark), var(--leather-shadow));
+  color: var(--stitch);
+  border-color: var(--leather-shadow);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  text-shadow: none;
+}
+
+.add-to-cart-btn {
+  background: linear-gradient(to bottom, var(--brass-light), var(--brass) 50%, var(--brass-dark));
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.add-to-cart-btn:hover { background: linear-gradient(to bottom, #f0dca4, var(--brass)); }
+
+/* ---- Search bar: embossed leather groove ---- */
+.search-bar {
+  background: var(--tag-paper);
+  border: 1px solid rgba(90,58,34,0.4);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25), inset 0 -1px 0 rgba(255,255,255,0.6);
+}
+
+/* ---- Cards: paper hang-tags, hole-punched and slightly askew ---- */
+.hero-side .card, .gallery-card, .product-card {
+  background: var(--tag-paper);
+  box-shadow:
+    0 10px 18px rgba(40,25,10,0.35),
+    0 2px 3px rgba(40,25,10,0.2),
+    inset 0 0 0 1px rgba(90,58,34,0.15);
+  border-radius: 14px !important;
+  position: relative;
+}
+.hero-side .card:nth-child(odd) { transform: rotate(-0.6deg); }
+.hero-side .card:nth-child(even) { transform: rotate(0.6deg); }
+.hero-side .card:hover, .gallery-card:hover, .product-card:hover { transform: rotate(0deg) translateY(-3px); }
+
+.hero-side .card::after, .gallery-card::after {
+  content: "";
+  position: absolute; top: 10px; right: 14px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #bbb 65%, #888);
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* ---- Feature panels: pressed canvas card ---- */
+.feature {
+  background: var(--canvas);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    inset 0 -3px 6px rgba(0,0,0,0.08),
+    0 3px 6px rgba(0,0,0,0.15);
+  padding: 20px;
+}
+
+/* ---- Chat widget: glossy raised bubble with an actual chat icon ---- */
+.chat-toggle {
+  background: radial-gradient(circle at 32% 28%, #c99566, var(--leather) 55%, var(--leather-dark) 100%) !important;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.4),
+    inset 0 2px 3px rgba(255,255,255,0.35),
+    inset 0 -4px 6px rgba(0,0,0,0.35) !important;
+}
+.chat-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><circle cx="8.5" cy="11" r="1.3" fill="%238b5e3c"/><circle cx="12" cy="11" r="1.3" fill="%238b5e3c"/><circle cx="15.5" cy="11" r="1.3" fill="%238b5e3c"/></svg>')
+    center/54% no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+}
+.chat-toggle .chat-toggle-badge {
+  background: radial-gradient(circle at 35% 30%, #baffc9, #22c55e 70%) !important;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4) !important;
+}
