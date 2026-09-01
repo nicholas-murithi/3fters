@@ -79,6 +79,42 @@ export async function login(email, password) {
 }
 
 // ========================
+// GOOGLE SIGN-IN
+// ========================
+export async function loginWithGoogle(credential) {
+  try {
+    const controller = new AbortController();
+    const timeout    = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch(`${API}/auth/google`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ credential }),
+      signal:  controller.signal
+    });
+
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (!res.ok) return { error: { message: data.error } };
+
+    localStorage.setItem('3fters_token', data.token);
+    localStorage.setItem('3fters_user',  JSON.stringify(data.user));
+
+    window.location.href = data.user.role === 'admin'
+      ? '/client/admin.html'
+      : '/index.html';
+
+    return { data, error: null };
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      return { error: { message: 'Request timed out. Is the server running?' } };
+    }
+    return { error: { message: 'Cannot connect to server. Run npm run dev first.' } };
+  }
+}
+
+// ========================
 // LOGOUT
 // ========================
 export async function logout() {

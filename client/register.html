@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="auth-body">
 
@@ -52,6 +53,21 @@
 
     <div class="auth-divider"><span>or</span></div>
 
+    <div id="g_id_onload"
+      data-client_id="12095222317-2efhrk4uvtf8mnam31gb65tih1vmm8p3.apps.googleusercontent.com"
+      data-callback="handleGoogleCredential"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-shape="pill"
+      data-theme="outline"
+      data-text="signup_with"
+      data-size="large"
+      data-width="100%"
+      style="display:flex;justify-content:center;margin-bottom:15px">
+    </div>
+
     <p class="auth-switch">
       Already have an account? <a href="/client/login.html">Log in</a>
     </p>
@@ -59,7 +75,21 @@
 </div>
 
 <script type="module">
-  import { register } from './js/auth.js';
+  import { register, loginWithGoogle } from './js/auth.js';
+
+  // Google Identity Services calls this by name (see data-callback above),
+  // so it has to live on window, not stay a module-scoped import.
+  window.handleGoogleCredential = async (response) => {
+    const errorEl = document.getElementById('authError');
+    errorEl.classList.add('hidden');
+
+    const { error } = await loginWithGoogle(response.credential);
+
+    if (error) {
+      errorEl.textContent = error.message;
+      errorEl.classList.remove('hidden');
+    }
+  };
 
   document.getElementById('togglePw').addEventListener('click', () => {
     const input = document.getElementById('regPassword');

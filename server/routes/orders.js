@@ -67,11 +67,9 @@ router.get('/my-orders', protect, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT o.*, 
-              l.title, l.images, l.price as listing_price,
-              u.full_name as seller_name
+              l.title, l.images, l.price as listing_price
        FROM orders o
        JOIN listings l ON o.listing_id = l.id
-       JOIN users u ON o.seller_id = u.id
        WHERE o.buyer_id = $1
        ORDER BY o.created_at DESC`,
       [req.user.id]
