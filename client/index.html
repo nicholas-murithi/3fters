@@ -35,7 +35,6 @@
   <div class="top-right">
     <a href="orders.html" data-i18n="trackOrder">Track Order</a>
     <a href="about.html" data-i18n="about">About 3FTERS</a>
-    <div id="topBarAuth"></div>
   </div>
 </div>
 
@@ -357,12 +356,10 @@
 
   // Update top bar auth
   const user = getUser();
-  const topBarAuth = document.getElementById('topBarAuth');
   const mobileNavAuth = document.getElementById('mobileNavAuth');
   const mobileRoleLinks = document.getElementById('mobileRoleLinks');
 
   if (user) {
-    topBarAuth.innerHTML = '';
     if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${user.full_name?.split(' ')[0] || 'Account'}</span>`;
 
     // Only show links that match the logged-in user's actual role
@@ -374,10 +371,6 @@
       mobileRoleLinks.innerHTML = links;
     }
   } else {
-    topBarAuth.innerHTML = `
-      <a href="login.html">Log In</a>
-      <a href="register.html">Sign Up</a>
-    `;
     if (mobileNavAuth) mobileNavAuth.innerHTML = `
       <a href="login.html">Log In</a>
       <a href="register.html">Sign Up</a>
