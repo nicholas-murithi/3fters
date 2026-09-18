@@ -154,6 +154,7 @@ export function updateNav() {
   if (user) {
     navEl.innerHTML = `
       ${user.role === 'admin' ? '<a href="/client/admin.html">Admin Panel</a>' : ''}
+      <a href="/client/wishlist.html">♡ Wishlist</a>
       <a href="/client/cart.html">🛒 Cart</a>
       <span class="nav-user">Hi, ${user.full_name?.split(' ')[0]}</span>
       <button class="logout-btn" id="logoutNavBtn">Log out</button>

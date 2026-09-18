@@ -589,6 +589,26 @@ body::before {
   color: #111;
 }
 
+.price-old {
+  text-decoration: line-through;
+  color: #999;
+  font-weight: 400;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.sale-badge {
+  display: inline-block;
+  background: #d64545;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
 .pc-actions {
   display: flex;
   gap: 8px;
@@ -1035,6 +1055,7 @@ body::before {
 .badge.paid      { background: #cce5ff; color: #004085; }
 .badge.shipped   { background: #e2d9f3; color: #4a235a; }
 .badge.delivered { background: #d4edda; color: #155724; }
+.badge.cancelled { background: #f1f1f1; color: #666; }
 
 /* ========================
    RESPONSIVE TABLET

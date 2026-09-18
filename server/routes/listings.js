@@ -78,18 +78,23 @@ router.get('/:id', async (req, res) => {
 
 // POST create listing (admin only)
 router.post('/', protect, adminOnly, async (req, res) => {
-  const { title, description, price, category, size, condition, images, gender, style } = req.body;
+  const { title, description, price, category, size, condition, images, gender, style, original_price } = req.body;
 
   if (!title || !price) {
     return res.status(400).json({ error: 'Title and price are required' });
   }
 
+  // original_price only makes sense as a discount marker if it's actually
+  // higher than the current price — otherwise ignore it.
+  const cleanOriginalPrice =
+    original_price && Number(original_price) > Number(price) ? original_price : null;
+
   try {
     const result = await pool.query(
-      `INSERT INTO listings (seller_id, title, description, price, category, size, condition, images, gender, style)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO listings (seller_id, title, description, price, category, size, condition, images, gender, style, original_price)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
-      [req.user.id, title, description, price, category, size, condition, images || [], gender || 'unisex', style || null]
+      [req.user.id, title, description, price, category, size, condition, images || [], gender || 'unisex', style || null, cleanOriginalPrice]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -99,15 +104,18 @@ router.post('/', protect, adminOnly, async (req, res) => {
 
 // PATCH update listing (admin only)
 router.patch('/:id', protect, adminOnly, async (req, res) => {
-  const { title, description, price, category, size, condition, status, gender, style } = req.body;
+  const { title, description, price, category, size, condition, status, gender, style, original_price } = req.body;
+
+  const cleanOriginalPrice =
+    original_price && Number(original_price) > Number(price) ? original_price : null;
 
   try {
     const result = await pool.query(
       `UPDATE listings
-       SET title=$1, description=$2, price=$3, category=$4, size=$5, condition=$6, status=$7, gender=$8, style=$9
-       WHERE id=$10
+       SET title=$1, description=$2, price=$3, category=$4, size=$5, condition=$6, status=$7, gender=$8, style=$9, original_price=$10
+       WHERE id=$11
        RETURNING *`,
-      [title, description, price, category, size, condition, status, gender || 'unisex', style || null, req.params.id]
+      [title, description, price, category, size, condition, status, gender || 'unisex', style || null, cleanOriginalPrice, req.params.id]
     );
     if (!result.rows.length) {
       return res.status(404).json({ error: 'Listing not found' });

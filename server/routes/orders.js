@@ -9,7 +9,7 @@ router.post('/', protect, async (req, res) => {
   const { listing_id, delivery_address } = req.body;
 
   try {
-    // Get listing
+    // Get listing (for price/seller info)
     const listingRes = await pool.query(
       'SELECT * FROM listings WHERE id = $1', [listing_id]
     );
@@ -20,23 +20,40 @@ router.post('/', protect, async (req, res) => {
 
     const listing = listingRes.rows[0];
 
-    if (listing.status !== 'available') {
-      return res.status(400).json({ error: 'Item is no longer available' });
+    // Atomically claim the listing: this UPDATE only succeeds if the
+    // listing is STILL 'available' at the moment it runs. If two buyers
+    // hit this at the same time, the database guarantees only one of
+    // these UPDATEs can flip the row from 'available' -> 'pending' —
+    // the second one affects 0 rows, so we know someone beat them to it.
+    const claim = await pool.query(
+      `UPDATE listings SET status='pending'
+       WHERE id=$1 AND status='available'
+       RETURNING *`,
+      [listing_id]
+    );
+
+    if (!claim.rows.length) {
+      return res.status(409).json({ error: 'Sorry, this item was just sold to someone else.' });
     }
 
     // Create order
-    const result = await pool.query(
-      `INSERT INTO orders (buyer_id, seller_id, listing_id, amount, delivery_address)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [req.user.id, listing.seller_id, listing_id, listing.price, delivery_address]
-    );
-
-    // Mark listing as pending
-    await pool.query(
-      'UPDATE listings SET status=$1 WHERE id=$2',
-      ['pending', listing_id]
-    );
+    let result;
+    try {
+      result = await pool.query(
+        `INSERT INTO orders (buyer_id, seller_id, listing_id, amount, delivery_address)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [req.user.id, listing.seller_id, listing_id, listing.price, delivery_address]
+      );
+    } catch (insertErr) {
+      // Order creation failed after we'd already claimed the listing —
+      // release it back to 'available' so it isn't stuck in limbo.
+      await pool.query(
+        `UPDATE listings SET status='available' WHERE id=$1 AND status='pending'`,
+        [listing_id]
+      );
+      throw insertErr;
+    }
 
     res.status(201).json(result.rows[0]);
 
@@ -104,7 +121,7 @@ router.get('/seller-orders', protect, async (req, res) => {
 router.patch('/:id/status', protect, async (req, res) => {
   const { status } = req.body;
 
-  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered'];
+  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
@@ -117,11 +134,22 @@ router.patch('/:id/status', protect, async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const order = existing.rows[0];
-    const isOwner = order.seller_id === req.user.id;
-    const isAdmin = req.user.role === 'admin';
+    const order    = existing.rows[0];
+    const isOwner  = order.seller_id === req.user.id; // seller (3FTERS admin/staff)
+    const isBuyer  = order.buyer_id  === req.user.id;
+    const isAdmin  = req.user.role   === 'admin';
 
-    if (!isOwner && !isAdmin) {
+    // Buyers can only cancel their OWN order, and only while it's still
+    // 'pending' (i.e. before we've shipped or confirmed payment). Anything
+    // else (marking paid/shipped/delivered) stays seller/admin only.
+    if (status === 'cancelled') {
+      if (!isBuyer && !isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Not authorized to cancel this order' });
+      }
+      if (isBuyer && !isOwner && !isAdmin && order.status !== 'pending') {
+        return res.status(400).json({ error: 'This order can no longer be cancelled — it has already been confirmed. Please contact us on WhatsApp.' });
+      }
+    } else if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Not authorized to update this order' });
     }
 
@@ -136,6 +164,16 @@ router.patch('/:id/status', protect, async (req, res) => {
       await pool.query(
         'UPDATE listings SET status=$1 WHERE id=$2',
         ['sold', result.rows[0].listing_id]
+      );
+    }
+
+    // If cancelled, release the listing back to 'available' so someone
+    // else can buy it — but only if it's still 'pending' (don't un-sell
+    // something that was already marked sold via a different flow).
+    if (status === 'cancelled') {
+      await pool.query(
+        `UPDATE listings SET status='available' WHERE id=$1 AND status='pending'`,
+        [result.rows[0].listing_id]
       );
     }
 

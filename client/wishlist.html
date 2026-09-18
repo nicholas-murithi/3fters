@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Wishlist  3FTERS</title>
+  <link rel="stylesheet" href="styles/main.css"/>
+  <link rel="stylesheet" href="styles/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><a href="../index.html">3FTERS</a></div>
+  <nav id="authNav" class="auth-nav"></nav>
+</header>
+
+<main style="max-width:1100px;margin:0 auto;padding:40px 20px">
+  <h1 style="margin-bottom:8px">My Wishlist</h1>
+  <p style="color:#777;margin-bottom:30px;font-size:14px">Items you've saved for later.</p>
+
+  <div id="wishlistGrid" class="listings-grid">
+    <div class="loading-state">Loading your wishlist...</div>
+  </div>
+</main>
+
+<script type="module">
+  import { updateNav, getToken } from './js/auth.js';
+  import { formatPrice } from './js/preferences.js';
+  import { renderOutOfStockNotice, addToCart, toggleWishlist } from './js/listings.js';
+
+  updateNav();
+
+  const API = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://threefters.onrender.com/api';
+
+  async function loadWishlist() {
+    const grid = document.getElementById('wishlistGrid');
+    const ids  = JSON.parse(localStorage.getItem('3fters_wishlist') || '[]');
+
+    if (!ids.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          Your wishlist is empty. Tap the ♡ on any item to save it here.
+          <br><br>
+          <a href="/client/index.html" class="btn-primary" style="display:inline-block;text-decoration:none">
+            Browse thrift finds
+          </a>
+        </div>`;
+      return;
+    }
+
+    try {
+      // Fetch each saved listing individually — sold-out items still need
+      // to render (with a thrift-request fallback), so we can't rely on
+      // the main /listings feed, which only returns 'available' items.
+      const items = await Promise.all(
+        ids.map(id =>
+          fetch(`${API}/listings/${id}`)
+            .then(r => r.ok ? r.json() : null)
+            .catch(() => null)
+        )
+      );
+
+      const valid = items.filter(Boolean);
+
+      // Clean up any wishlist entries pointing at listings that no longer
+      // exist at all (deleted by admin) — but keep sold/pending ones.
+      const stillExisting = valid.map(i => i.id);
+      if (stillExisting.length !== ids.length) {
+        localStorage.setItem('3fters_wishlist', JSON.stringify(stillExisting));
+      }
+
+      if (!valid.length) {
+        grid.innerHTML = '<div class="empty-state">Your wishlist is empty. Tap the ♡ on any item to save it here.</div>';
+        return;
+      }
+
+      grid.innerHTML = valid.map(item => `
+        <div class="product-card">
+          <div class="pc-media" onclick="window.location.href='/client/listing.html?id=${item.id}'">
+            <img src="${item.images?.[0] || '/eimages/placeholder.png'}" alt="${item.title}" loading="lazy">
+            <span class="card-badge">${item.condition}</span>
+            <span
+              class="heart"
+              role="button"
+              aria-label="Remove from wishlist"
+              aria-pressed="true"
+              onclick="event.stopPropagation(); removeFromWishlist('${item.id}')"
+            >❤️</span>
+          </div>
+          <h4 onclick="window.location.href='/client/listing.html?id=${item.id}'">${item.title}</h4>
+          <p class="price">
+            ${item.original_price ? `<span class="price-old">${formatPrice(item.original_price)}</span> ` : ''}${formatPrice(item.price)}${item.original_price ? ' <span class="sale-badge">SALE</span>' : ''}
+          </p>
+          <p class="card-meta">${item.size ? 'Size ' + item.size : ''} · ${item.location || 'Kenya'}</p>
+
+          ${item.status !== 'available' ? renderOutOfStockNotice(item) : `
+            <div class="pc-actions">
+              <button class="btn-view" onclick="window.location.href='/client/listing.html?id=${item.id}'">View</button>
+              <button class="btn-add" onclick="addToCart('${item.id}')">Add</button>
+            </div>
+          `}
+        </div>
+      `).join('');
+
+    } catch (err) {
+      grid.innerHTML = '<div class="empty-state">Could not load your wishlist. Is the server running?</div>';
+    }
+  }
+
+  window.removeFromWishlist = function(id) {
+    // Use a detached element for the shared toggle helper (it only reads
+    // .textContent/attributes, doesn't need to be on-screen), then re-render.
+    const dummy = document.createElement('span');
+    toggleWishlist(dummy, id);
+    loadWishlist();
+  };
+
+  loadWishlist();
+</script>
+
+<!-- ======================== -->
+<!-- WHATSAPP THRIFTING SERVICE BUTTON -->
+<!-- ======================== -->
+<style>
+  #waFabBtn {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 9999;
+    border: none;
+    transition: transform 0.2s ease;
+  }
+  #waFabBtn:hover { transform: scale(1.08); }
+  #waFabBtn svg { width: 30px; height: 30px; }
+
+  #waPopup {
+    position: fixed;
+    bottom: 96px;
+    left: 24px;
+    width: min(320px, calc(100vw - 32px));
+    background: var(--white, #fff);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    padding: 18px;
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #waPopup.open { display: flex; }
+  #waPopup h4 {
+    color: var(--dark-brown, #5a3a22);
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  #waPopup p {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+  }
+  .wa-option {
+    display: block;
+    text-decoration: none;
+    background: var(--brown, #8b5e3c);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    transition: background 0.2s ease;
+  }
+  .wa-option:hover { background: var(--dark-brown, #5a3a22); }
+  .wa-option small {
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 2px;
+    opacity: 0.9;
+  }
+  #waPopupClose {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+  }
+</style>
+
+<button id="waFabBtn" aria-label="Chat with 3FTERS on WhatsApp" onclick="toggleWaPopup()">
+  <svg viewBox="0 0 32 32" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.34.653 4.527 1.786 6.393L4 29l7.81-1.75A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 21.6c-1.953 0-3.77-.573-5.3-1.56l-.38-.24-4.64 1.04 1.02-4.52-.25-.39A9.55 9.55 0 0 1 5.4 15c0-5.85 4.75-10.6 10.6-10.6S26.6 9.15 26.6 15 21.85 24.6 16 24.6zm5.86-7.94c-.32-.16-1.9-.94-2.2-1.05-.3-.11-.52-.16-.73.16-.22.32-.84 1.05-1.03 1.27-.19.22-.38.24-.7.08-.32-.16-1.36-.5-2.6-1.6-.96-.86-1.6-1.92-1.79-2.24-.19-.32-.02-.5.14-.66.14-.14.32-.38.48-.57.16-.19.22-.32.32-.54.11-.22.05-.4-.02-.56-.08-.16-.73-1.75-1-2.4-.26-.63-.53-.55-.73-.56h-.62c-.22 0-.56.08-.86.4-.3.32-1.12 1.1-1.12 2.68s1.15 3.11 1.31 3.33c.16.22 2.26 3.45 5.47 4.84.76.33 1.36.53 1.82.68.77.24 1.46.21 2.02.13.62-.09 1.9-.78 2.17-1.53.27-.75.27-1.4.19-1.53-.08-.13-.29-.21-.61-.37z"/>
+  </svg>
+  <span>Order / Book a trip</span>
+</button>
+
+<div id="waPopup">
+  <button id="waPopupClose" onclick="toggleWaPopup()">✕</button>
+  <h4>Thrifting with 3FTERS </h4>
+  <p>Order ahead, or bring us along to help you pick the best finds in person.</p>
+
+  <a class="wa-option" target="_blank" rel="noopener"
+     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20pre-order%20some%20items%20before%20they%20go%20live.%20Can%20you%20help%20me%3F">
+     Order in advance
+    <small>Reserve items before they're listed</small>
+  </a>
+
+  <a class="wa-option" target="_blank" rel="noopener"
+     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20book%20a%20personal%20thrifting%20trip%20(KSh%20300%2Fhr).%20Can%20we%20arrange%20a%20time%3F">
+     Book a personal thrifting trip
+    <small>We shop with you in person  KSh 300/hr</small>
+  </a>
+</div>
+
+<script>
+  function toggleWaPopup() {
+    document.getElementById('waPopup').classList.toggle('open');
+  }
+  document.addEventListener('click', function (e) {
+    const popup = document.getElementById('waPopup');
+    const fab   = document.getElementById('waFabBtn');
+    if (popup.classList.contains('open') && !popup.contains(e.target) && !fab.contains(e.target)) {
+      popup.classList.remove('open');
+    }
+  });
+</script>
+
+</body>
+</html>

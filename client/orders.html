@@ -83,6 +83,12 @@
           </div>
 
           <!-- ORDER TRACKING STEPS -->
+          ${order.status === 'cancelled' ? `
+            <div style="margin-top:20px;padding:12px 15px;background:#fef2f2;border-radius:10px;
+                        color:#991b1b;font-size:13px;font-weight:600">
+              ✕ This order was cancelled — the item is back on sale.
+            </div>
+          ` : `
           <div style="margin-top:20px">
             <div style="display:flex;justify-content:space-between;position:relative">
               <div style="position:absolute;top:12px;left:0;right:0;height:2px;background:#eee;z-index:0"></div>
@@ -106,12 +112,22 @@
               `).join('')}
             </div>
           </div>
+          `}
 
           ${order.mpesa_code ? `
             <div style="margin-top:15px;padding:10px 15px;background:#f8f5f2;
               border-radius:10px;font-size:13px;color:#555">
               M-Pesa Code: <strong>${order.mpesa_code}</strong>
             </div>
+          ` : ''}
+
+          ${order.status === 'pending' ? `
+            <button
+              onclick="cancelOrder('${order.id}')"
+              style="margin-top:15px;background:none;border:1px solid #d64545;color:#d64545;
+                     padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+              Cancel order
+            </button>
           ` : ''}
 
           ${order.status === 'delivered' ? `
@@ -174,6 +190,31 @@
       // Silently skip if reviews check fails, non-critical
     }
   }
+
+  window.cancelOrder = async function(orderId) {
+    if (!confirm('Cancel this order? The item will go back on sale for other buyers.')) return;
+
+    try {
+      const res = await fetch(`${API}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Could not cancel this order.');
+        return;
+      }
+
+      loadOrders();
+    } catch (err) {
+      alert('Network error cancelling order.');
+    }
+  };
 
   window.submitReview = async function(orderId) {
     const starsEl = document.getElementById(`stars-${orderId}`);

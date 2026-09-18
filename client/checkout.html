@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout 3FTERS</title>
+  <title>Checkout  3FTERS</title>
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -104,6 +104,7 @@
 
 <script type="module">
   import { protectPage, updateNav, getToken, getUser } from './js/auth.js';
+  import { buildThriftRequestUrl } from './js/listings.js';
 
   protectPage();
   updateNav();
@@ -176,15 +177,16 @@
 
   loadCheckout();
 
-  function buildWhatsAppMessage(address, phone) {
+  function buildWhatsAppMessage(address, phone, items) {
+    const total = items.reduce((sum, item) => sum + Number(item.price), 0);
     const lines = [
       `Hi 3FTERS! I'd like to order:`,
       ``,
-      ...cartItems.map(item =>
+      ...items.map(item =>
         `• ${item.title}${item.size ? ' (Size ' + item.size + ')' : ''} — KSh ${Number(item.price).toLocaleString()}`
       ),
       ``,
-      `Total: KSh ${grandTotal.toLocaleString()}`,
+      `Total: KSh ${total.toLocaleString()}`,
       ``,
       `Name: ${user?.full_name || '—'}`,
       `Phone: ${phone}`,
@@ -213,6 +215,9 @@
     statusEl.style.display = 'none';
 
     try {
+      const succeeded = [];
+      const soldOut    = [];
+
       for (const item of cartItems) {
         const orderRes = await fetch(`${API}/orders`, {
           method:  'POST',
@@ -226,13 +231,41 @@
           })
         });
 
-        if (!orderRes.ok) {
+        if (orderRes.ok) {
+          succeeded.push(item);
+        } else if (orderRes.status === 409) {
+          // Someone else's order claimed this item first — the database
+          // guaranteed only one of us could win the race.
+          soldOut.push(item);
+        } else {
           const err = await orderRes.json().catch(() => ({}));
           console.warn('Order error:', err);
+          soldOut.push(item); // treat any other failure the same way: don't silently proceed
         }
       }
 
-      const message = buildWhatsAppMessage(address, phone);
+      // If NOTHING went through, stop here and show the sold-out fallback —
+      // don't open WhatsApp or clear the cart as if the order succeeded.
+      if (succeeded.length === 0) {
+        statusEl.style.display    = 'block';
+        statusEl.style.background = '#fff7ed';
+        statusEl.style.color      = '#9a3412';
+        statusEl.innerHTML = `
+          <strong>Sorry, this item was just sold to someone else.</strong><br>
+          ${soldOut.map(item => `
+            <div style="margin-top:10px">
+              ${item.title} is no longer available —
+              <a href="${buildThriftRequestUrl(item)}" target="_blank" rel="noopener"
+                 style="color:#8b5e3c;font-weight:600">ask us to thrift a similar one</a>
+            </div>
+          `).join('')}
+        `;
+        btn.textContent = 'Update cart and try again';
+        btn.disabled    = false;
+        return;
+      }
+
+      const message = buildWhatsAppMessage(address, phone, succeeded);
       const waUrl    = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, '_blank');
 
@@ -241,11 +274,28 @@
       statusEl.style.display    = 'block';
       statusEl.style.background = '#f0fdf4';
       statusEl.style.color      = '#16a34a';
-      statusEl.innerHTML = `
-         <strong>Order placed!</strong><br>
-        We opened WhatsApp with your order details just hit send.
-        We'll reply with M-Pesa payment instructions.
-      `;
+
+      if (soldOut.length > 0) {
+        statusEl.innerHTML = `
+           <strong>Order placed for available items.</strong><br>
+          We opened WhatsApp with your order details — hit send.
+          <div style="margin-top:10px;color:#9a3412">
+            Note: ${soldOut.map(i => i.title).join(', ')} sold out before checkout completed.
+            ${soldOut.map(item => `
+              <a href="${buildThriftRequestUrl(item)}" target="_blank" rel="noopener"
+                 style="color:#8b5e3c;font-weight:600;display:block;margin-top:4px">
+                Ask us to thrift a similar "${item.title}"
+              </a>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        statusEl.innerHTML = `
+           <strong>Order placed!</strong><br>
+          We opened WhatsApp with your order details just hit send.
+          We'll reply with M-Pesa payment instructions.
+        `;
+      }
 
       btn.textContent = '✅ Order sent to WhatsApp';
 

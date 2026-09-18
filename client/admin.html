@@ -106,6 +106,13 @@
               style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
           </div>
           <div style="flex:1">
+            <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Original Price (optional — for sale items)</label>
+            <input type="number" id="listingOriginalPriceInput" placeholder="e.g. 2000"
+              style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1">
             <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Size</label>
             <input type="text" id="listingSizeInput" placeholder="M / 40"
               style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
@@ -402,7 +409,7 @@
               <td>
                 <select onchange="updateOrderStatus('${o.id}', this.value)"
                   style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px">
-                  ${['pending','paid','shipped','delivered'].map(s => `
+                  ${['pending','paid','shipped','delivered','cancelled'].map(s => `
                     <option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>
                   `).join('')}
                 </select>
@@ -496,7 +503,7 @@
   window.closeAddListing = function() {
     document.getElementById('addListingModal').style.display = 'none';
     document.getElementById('addListingError').style.display  = 'none';
-    ['listingImages','listingTitleInput','listingDescInput','listingPriceInput','listingSizeInput']
+    ['listingImages','listingTitleInput','listingDescInput','listingPriceInput','listingOriginalPriceInput','listingSizeInput']
       .forEach(id => document.getElementById(id).value = '');
   };
 
@@ -508,6 +515,7 @@
     const title       = document.getElementById('listingTitleInput').value.trim();
     const description = document.getElementById('listingDescInput').value.trim();
     const price       = document.getElementById('listingPriceInput').value;
+    const originalPrice = document.getElementById('listingOriginalPriceInput').value;
     const size        = document.getElementById('listingSizeInput').value.trim();
     const category    = document.getElementById('listingCategoryInput').value;
     const condition   = document.getElementById('listingConditionInput').value;
@@ -552,7 +560,7 @@
       const res = await fetch(`${API}/listings`, {
         method:  'POST',
         headers: authHeaders,
-        body:    JSON.stringify({ title, description, price, category, size, condition, images, gender, style })
+        body:    JSON.stringify({ title, description, price, category, size, condition, images, gender, style, original_price: originalPrice || null })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create listing');

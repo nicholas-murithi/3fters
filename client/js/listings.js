@@ -5,6 +5,38 @@ const API = window.location.hostname === 'localhost' ||
   ? 'http://localhost:5000/api'
   : 'https://threefters.onrender.com/api';
 
+const WHATSAPP_NUMBER = '254721153625';
+
+// ========================
+// "THRIFT ONE FOR ME" — shown when an item is sold/out of stock, or when
+// checkout loses the reservation race to another buyer.
+// ========================
+export function buildThriftRequestUrl(item) {
+  const desc = item?.title ? `like "${item.title}"` : 'like the one I was looking at';
+  const message =
+    `Hi 3FTERS! The item I wanted is out of stock. ` +
+    `Could you thrift something ${desc} for me? I'm happy to book your personal ` +
+    `thrifting service (KSh 300/hr) if needed.`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+export function renderOutOfStockNotice(item) {
+  const waUrl = buildThriftRequestUrl(item);
+  return `
+    <div style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:14px;margin:12px 0">
+      <strong style="color:#9a3412">This item is out of stock</strong>
+      <p style="font-size:13px;color:#7c2d12;margin:6px 0 10px">
+        Someone already snagged it — but we can thrift a similar piece for you.
+      </p>
+      <a href="${waUrl}" target="_blank" rel="noopener"
+         style="display:inline-block;background:#8b5e3c;color:#fff;padding:10px 16px;
+                border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">
+        🧭 Ask us to thrift one for you
+      </a>
+    </div>
+  `;
+}
+
 // ========================
 // LOAD ALL LISTINGS
 // ========================
@@ -43,6 +75,8 @@ export async function loadListings() {
       return;
     }
 
+    const wishlist = JSON.parse(localStorage.getItem('3fters_wishlist') || '[]');
+
     grid.innerHTML = data.map(item => `
       <div class="product-card animate">
         <div class="pc-media" onclick="window.location.href='/client/listing.html?id=${item.id}'">
@@ -56,9 +90,9 @@ export async function loadListings() {
             class="heart"
             role="button"
             aria-label="Add to wishlist"
-            aria-pressed="false"
+            aria-pressed="${wishlist.includes(item.id)}"
             onclick="event.stopPropagation(); toggleWishlist(this, '${item.id}')"
-          >♡</span>
+          >${wishlist.includes(item.id) ? '❤️' : '♡'}</span>
         </div>
         <p class="pc-category">
           ${item.gender && item.gender !== 'unisex' ? (item.gender === 'men' ? 'Gents · ' : 'Ladies · ') : ''}${item.category || 'thrift'}
@@ -67,7 +101,9 @@ export async function loadListings() {
         ${Number(item.review_count) > 0 ? `
           <p style="font-size:12px;color:#e8a33d;margin:2px 0">★ ${item.avg_rating} (${item.review_count})</p>
         ` : ''}
-        <p class="price">${formatPrice(item.price)}</p>
+        <p class="price">
+          ${item.original_price ? `<span class="price-old">${formatPrice(item.original_price)}</span> ` : ''}${formatPrice(item.price)}${item.original_price ? ' <span class="sale-badge">SALE</span>' : ''}
+        </p>
         <p class="card-meta">${item.size ? 'Size ' + item.size : ''} · ${item.location || 'Kenya'}</p>
         <div class="pc-actions">
           <button
@@ -115,7 +151,10 @@ export async function loadSingleListing() {
     `).join('');
 
     document.getElementById('listingTitle').textContent     = item.title;
-    document.getElementById('listingPrice').textContent     = formatPrice(item.price);
+    document.getElementById('listingPrice').innerHTML =
+      (item.original_price ? `<span class="price-old">${formatPrice(item.original_price)}</span> ` : '') +
+      formatPrice(item.price) +
+      (item.original_price ? ' <span class="sale-badge">SALE</span>' : '');
     document.getElementById('listingCondition').textContent = item.condition;
     document.getElementById('listingSize').textContent      = item.size || 'One size';
     document.getElementById('listingCategory').textContent  = item.category;
@@ -123,6 +162,16 @@ export async function loadSingleListing() {
     document.getElementById('sellerLocation').textContent   = item.location || 'Kenya';
 
     window.__currentListing = item;
+
+    if (item.status !== 'available') {
+      const notice = document.getElementById('outOfStockNotice');
+      if (notice) {
+        notice.style.display = 'block';
+        notice.innerHTML = renderOutOfStockNotice(item);
+      }
+      const actions = document.getElementById('listingActions');
+      if (actions) actions.style.display = 'none';
+    }
 
     loadReviews(id);
 
