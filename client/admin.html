@@ -521,6 +521,14 @@
       return;
     }
 
+    const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB, must match server limit
+    const oversized = [...files].filter(f => f.size > MAX_FILE_SIZE);
+    if (oversized.length > 0) {
+      errorEl.textContent = `${oversized.length} file(s) exceed 6MB: ${oversized.map(f => f.name).join(', ')}. Please resize and try again.`;
+      errorEl.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'Publishing...';
 

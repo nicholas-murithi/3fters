@@ -146,5 +146,129 @@
   });
 </script>
 
+<!-- ======================== -->
+<!-- WHATSAPP THRIFTING SERVICE BUTTON -->
+<!-- ======================== -->
+<style>
+  #waFabBtn {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    height: 52px;
+    padding: 0 18px 0 14px;
+    border-radius: 30px;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 9999;
+    border: none;
+    transition: transform 0.2s ease;
+  }
+  #waFabBtn:hover { transform: scale(1.05); }
+  #waFabBtn svg { width: 26px; height: 26px; flex-shrink: 0; }
+  #waFabBtn span {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  #waPopup {
+    position: fixed;
+    bottom: 96px;
+    left: 24px;
+    width: min(320px, calc(100vw - 32px));
+    background: var(--white, #fff);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    padding: 18px;
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #waPopup.open { display: flex; }
+  #waPopup h4 {
+    color: var(--dark-brown, #5a3a22);
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  #waPopup p {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+  }
+  .wa-option {
+    display: block;
+    text-decoration: none;
+    background: var(--brown, #8b5e3c);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    transition: background 0.2s ease;
+  }
+  .wa-option:hover { background: var(--dark-brown, #5a3a22); }
+  .wa-option small {
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 2px;
+    opacity: 0.9;
+  }
+  #waPopupClose {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+  }
+</style>
+
+<button id="waFabBtn" aria-label="Chat with 3FTERS on WhatsApp" onclick="toggleWaPopup()">
+  <svg viewBox="0 0 32 32" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.34.653 4.527 1.786 6.393L4 29l7.81-1.75A11.94 11.94 0 0 0 16 27c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 21.6c-1.953 0-3.77-.573-5.3-1.56l-.38-.24-4.64 1.04 1.02-4.52-.25-.39A9.55 9.55 0 0 1 5.4 15c0-5.85 4.75-10.6 10.6-10.6S26.6 9.15 26.6 15 21.85 24.6 16 24.6zm5.86-7.94c-.32-.16-1.9-.94-2.2-1.05-.3-.11-.52-.16-.73.16-.22.32-.84 1.05-1.03 1.27-.19.22-.38.24-.7.08-.32-.16-1.36-.5-2.6-1.6-.96-.86-1.6-1.92-1.79-2.24-.19-.32-.02-.5.14-.66.14-.14.32-.38.48-.57.16-.19.22-.32.32-.54.11-.22.05-.4-.02-.56-.08-.16-.73-1.75-1-2.4-.26-.63-.53-.55-.73-.56h-.62c-.22 0-.56.08-.86.4-.3.32-1.12 1.1-1.12 2.68s1.15 3.11 1.31 3.33c.16.22 2.26 3.45 5.47 4.84.76.33 1.36.53 1.82.68.77.24 1.46.21 2.02.13.62-.09 1.9-.78 2.17-1.53.27-.75.27-1.4.19-1.53-.08-.13-.29-.21-.61-.37z"/>
+  </svg>
+  <span>Order / Book a trip</span>
+</button>
+
+<div id="waPopup">
+  <button id="waPopupClose" onclick="toggleWaPopup()">✕</button>
+  <h4>Thrifting with 3FTERS </h4>
+  <p>Order ahead, or bring us along to help you pick the best finds in person.</p>
+
+  <a class="wa-option" target="_blank" rel="noopener"
+     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20pre-order%20some%20items%20before%20they%20go%20live.%20Can%20you%20help%20me%3F">
+     Order in advance
+    <small>Reserve items before they're listed</small>
+  </a>
+
+  <a class="wa-option" target="_blank" rel="noopener"
+     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20book%20a%20personal%20thrifting%20trip%20(KSh%20300%2Fhr).%20Can%20we%20arrange%20a%20time%3F">
+     Book a personal thrifting trip
+    <small>We shop with you in person  KSh 300/hr</small>
+  </a>
+</div>
+
+<script>
+  function toggleWaPopup() {
+    document.getElementById('waPopup').classList.toggle('open');
+  }
+  document.addEventListener('click', function (e) {
+    const popup = document.getElementById('waPopup');
+    const fab   = document.getElementById('waFabBtn');
+    if (popup.classList.contains('open') && !popup.contains(e.target) && !fab.contains(e.target)) {
+      popup.classList.remove('open');
+    }
+  });
+</script>
+
 </body>
 </html>

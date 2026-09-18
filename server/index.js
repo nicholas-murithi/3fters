@@ -30,6 +30,13 @@ app.get('/', (req, res) => {
   res.json({ message: '3FTERS API is running on Neon PostgreSQL' });
 });
 
+// Global error handler — ensures every error (multer, auth, JSON parsing, etc.)
+// comes back as JSON instead of Express's default HTML error page.
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(err.status || 500).json({ error: err.message || 'Server error' });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`3FTERS server running on http://localhost:${PORT}`);
