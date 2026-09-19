@@ -9,9 +9,20 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Generate a short, shareable referral code from the user's name + random suffix
+function generateReferralCode(fullName) {
+  const base = (fullName || 'FTER')
+    .split(' ')[0]
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, 5) || 'FTER';
+  const suffix = crypto.randomBytes(2).toString('hex').toUpperCase();
+  return `${base}${suffix}`;
+}
+
 // REGISTER
 router.post('/register', async (req, res) => {
-  const { full_name, email, phone, password, role } = req.body;
+  const { full_name, email, phone, password, role, referral_code } = req.body;
 
   if (!full_name || !email || !phone || !password) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -29,12 +40,31 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
 
+    // If they entered a referral code, look up who it belongs to.
+    // Invalid/unknown codes are silently ignored rather than blocking signup.
+    let referredBy = null;
+    if (referral_code) {
+      const referrer = await pool.query(
+        'SELECT id FROM users WHERE referral_code = $1', [referral_code.trim().toUpperCase()]
+      );
+      if (referrer.rows.length) referredBy = referrer.rows[0].id;
+    }
+
+    // Generate this new user's own referral code, retrying on the rare
+    // collision since it's random.
+    let myCode;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = generateReferralCode(full_name);
+      const clash = await pool.query('SELECT id FROM users WHERE referral_code = $1', [candidate]);
+      if (!clash.rows.length) { myCode = candidate; break; }
+    }
+
     // Insert user
     const result = await pool.query(
-      `INSERT INTO users (full_name, email, phone, password, role)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, full_name, email, phone, role`,
-      [full_name, email, phone, hashed, role || 'buyer']
+      `INSERT INTO users (full_name, email, phone, password, role, referral_code, referred_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, full_name, email, phone, role, referral_code`,
+      [full_name, email, phone, hashed, role || 'buyer', myCode, referredBy]
     );
 
     const user  = result.rows[0];
@@ -208,6 +238,42 @@ router.get('/me', require('../middleware/authMiddleware'), async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET current user's referral code + list of people they've referred
+router.get('/referrals', require('../middleware/authMiddleware'), async (req, res) => {
+  try {
+    const me = await pool.query(
+      'SELECT referral_code FROM users WHERE id = $1', [req.user.id]
+    );
+    if (!me.rows.length) return res.status(404).json({ error: 'User not found' });
+
+    let myCode = me.rows[0].referral_code;
+
+    // Users who signed up before this feature existed won't have a code yet
+    // — generate one for them now instead of leaving it blank forever.
+    if (!myCode) {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const candidate = generateReferralCode(req.user.full_name);
+        const clash = await pool.query('SELECT id FROM users WHERE referral_code = $1', [candidate]);
+        if (!clash.rows.length) { myCode = candidate; break; }
+      }
+      await pool.query('UPDATE users SET referral_code = $1 WHERE id = $2', [myCode, req.user.id]);
+    }
+
+    const referred = await pool.query(
+      `SELECT full_name, created_at FROM users WHERE referred_by = $1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({
+      referral_code: myCode,
+      referred_count: referred.rows.length,
+      referred_users: referred.rows
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

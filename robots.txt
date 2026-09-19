@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /client/index.html
+Allow: /client/about.html
+Allow: /client/listing.html
+Allow: /client/eimages/
+Disallow: /client/admin.html
+Disallow: /client/checkout.html
+Disallow: /client/cart.html
+Disallow: /client/orders.html
+Disallow: /client/login.html
+Disallow: /client/register.html
+Disallow: /client/wishlist.html
+
+Sitemap: https://3fters.vercel.app/sitemap.xml

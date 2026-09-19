@@ -49,6 +49,11 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label>Referral code <span style="font-weight:400;color:#999">(optional)</span></label>
+      <input type="text" id="regReferralCode" placeholder="e.g. FRIEND1A2B" style="text-transform:uppercase">
+    </div>
+
     <button class="auth-btn" id="registerBtn">Create Account</button>
 
     <div class="auth-divider"><span>or</span></div>
@@ -96,11 +101,19 @@
     input.type  = input.type === 'password' ? 'text' : 'password';
   });
 
+  // Auto-fill referral code if they arrived via a shared link, e.g.
+  // register.html?ref=NICK1A2B
+  const refFromUrl = new URLSearchParams(window.location.search).get('ref');
+  if (refFromUrl) {
+    document.getElementById('regReferralCode').value = refFromUrl.toUpperCase();
+  }
+
   document.getElementById('registerBtn').addEventListener('click', async () => {
     const name      = document.getElementById('regName').value.trim();
     const email     = document.getElementById('regEmail').value.trim();
     const phone     = document.getElementById('regPhone').value.trim();
     const password  = document.getElementById('regPassword').value;
+    const referralCode = document.getElementById('regReferralCode').value.trim();
     const btn       = document.getElementById('registerBtn');
     const errorEl   = document.getElementById('authError');
     const successEl = document.getElementById('authSuccess');
@@ -125,7 +138,8 @@
 
     const { error } = await register(email, password, {
       full_name: name,
-      phone
+      phone,
+      referral_code: referralCode
     });
 
     if (error) {

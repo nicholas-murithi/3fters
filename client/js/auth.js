@@ -17,8 +17,9 @@ export async function register(email, password, metadata) {
       body:    JSON.stringify({
         email,
         password,
-        full_name: metadata.full_name,
-        phone:     metadata.phone
+        full_name:     metadata.full_name,
+        phone:         metadata.phone,
+        referral_code: metadata.referral_code || null
       }),
       signal: controller.signal
     });
@@ -154,6 +155,7 @@ export function updateNav() {
   if (user) {
     navEl.innerHTML = `
       ${user.role === 'admin' ? '<a href="/client/admin.html">Admin Panel</a>' : ''}
+      <a href="/client/referrals.html">🎁 Refer a friend</a>
       <a href="/client/wishlist.html">♡ Wishlist</a>
       <a href="/client/cart.html">🛒 Cart</a>
       <span class="nav-user">Hi, ${user.full_name?.split(' ')[0]}</span>

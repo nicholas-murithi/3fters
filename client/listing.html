@@ -3,7 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Item  3FTERS</title>
+  <meta name="description" content="Shop unique, affordable thrifted clothing and shoes at 3FTERS — curated pieces, sustainably sourced in Kenya."/>
+  <title>Item 3FTERS Thrift Everything</title>
+
+  <!-- Open Graph (WhatsApp, Facebook, Instagram link previews) -->
+  <meta property="og:site_name" content="3FTERS"/>
+  <meta property="og:type" content="product"/>
+  <meta property="og:title" content="3FTERS — Thrifted Style Finds"/>
+  <meta property="og:description" content="Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
+  <meta property="og:image" content="https://3fters.vercel.app/client/eimages/logo.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -50,6 +60,17 @@
         </div>
       </div>
 
+      <button type="button" onclick="document.getElementById('sizeGuideModal').style.display='flex'"
+        style="background:none;border:none;color:#8b5e3c;font-size:13px;font-weight:600;
+               text-decoration:underline;cursor:pointer;padding:6px 0;margin-top:4px">
+        📐 Not sure of your size? View size guide
+      </button>
+
+      <div id="fitNotesBox" style="display:none;margin-top:10px;padding:10px 14px;
+           background:#f8f5f2;border-radius:10px;font-size:13px;color:#5a3a22">
+        <strong>📏 Fit notes:</strong> <span id="fitNotesText"></span>
+      </div>
+
       <div class="listing-desc">
         <h4>Description</h4>
         <p id="listingDesc">—</p>
@@ -87,6 +108,62 @@
   </div>
 
 </main>
+
+<!-- SIZE GUIDE MODAL -->
+<div id="sizeGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:10000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;
+              max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">Size Guide</h3>
+      <button onclick="document.getElementById('sizeGuideModal').style.display='none'"
+        style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button>
+    </div>
+    <p style="font-size:13px;color:#777;margin-bottom:14px">
+      Thrifted items often use different regional sizing. Use this as a rough guide —
+      each listing's fit notes (when available) are more accurate for that specific piece.
+    </p>
+
+    <h4 style="font-size:14px;margin-bottom:6px">Tops / Jackets (Unisex)</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
+      <thead>
+        <tr style="border-bottom:1px solid #eee;text-align:left">
+          <th style="padding:6px 4px">US/UK</th>
+          <th style="padding:6px 4px">EU</th>
+          <th style="padding:6px 4px">Chest (in)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">S</td><td style="padding:6px 4px">44-46</td><td style="padding:6px 4px">36-38</td></tr>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">M</td><td style="padding:6px 4px">48-50</td><td style="padding:6px 4px">39-41</td></tr>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">L</td><td style="padding:6px 4px">52-54</td><td style="padding:6px 4px">42-44</td></tr>
+        <tr><td style="padding:6px 4px">XL</td><td style="padding:6px 4px">56-58</td><td style="padding:6px 4px">45-47</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="font-size:14px;margin-bottom:6px">Shoes (US to EU/UK)</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="border-bottom:1px solid #eee;text-align:left">
+          <th style="padding:6px 4px">US</th>
+          <th style="padding:6px 4px">UK</th>
+          <th style="padding:6px 4px">EU</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">7</td><td style="padding:6px 4px">6</td><td style="padding:6px 4px">40</td></tr>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">8</td><td style="padding:6px 4px">7</td><td style="padding:6px 4px">41</td></tr>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">9</td><td style="padding:6px 4px">8</td><td style="padding:6px 4px">42-43</td></tr>
+        <tr style="border-bottom:1px solid #f4f4f4"><td style="padding:6px 4px">10</td><td style="padding:6px 4px">9</td><td style="padding:6px 4px">44</td></tr>
+        <tr><td style="padding:6px 4px">11</td><td style="padding:6px 4px">10</td><td style="padding:6px 4px">45</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:12px;color:#999;margin-top:14px">
+      Still unsure? Message us on WhatsApp with your measurements and we'll help you pick.
+    </p>
+  </div>
+</div>
 
 <script type="module">
   import { updateNav } from './js/auth.js';
@@ -216,7 +293,7 @@
   <a class="wa-option" target="_blank" rel="noopener"
      href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20book%20a%20personal%20thrifting%20trip%20(KSh%20300%2Fhr).%20Can%20we%20arrange%20a%20time%3F">
      Book a personal thrifting trip
-    <small>We shop with you in person  KSh 300/hr</small>
+    <small>We shop with you in person KSh 300/hr</small>
   </a>
 </div>
 
