@@ -95,7 +95,14 @@
       });
 
     } catch (err) {
-      container.innerHTML = '<p style="color:#777">Could not load your referral info. Is the server running?</p>';
+      container.innerHTML = `
+        <p style="color:#777">
+          Something went wrong loading your referral info. Please try again, or
+          <a href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27m%20having%20trouble%20loading%20my%20referral%20code%20on%20the%20site."
+             target="_blank" rel="noopener" style="color:#8b5e3c;font-weight:600">
+            message us on WhatsApp
+          </a> and we'll sort it out.
+        </p>`;
     }
   }
 

@@ -45,7 +45,7 @@
         <div class="empty-state">
           Your wishlist is empty. Tap the ♡ on any item to save it here.
           <br><br>
-          <a href="/client/index.html" class="btn-primary" style="display:inline-block;text-decoration:none">
+          <a href="/index.html" class="btn-primary" style="display:inline-block;text-decoration:none">
             Browse thrift finds
           </a>
         </div>`;
@@ -107,7 +107,14 @@
       `).join('');
 
     } catch (err) {
-      grid.innerHTML = '<div class="empty-state">Could not load your wishlist. Is the server running?</div>';
+      grid.innerHTML = `
+        <div class="empty-state">
+          Something went wrong loading your wishlist. Please try again, or
+          <a href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27m%20having%20trouble%20loading%20my%20wishlist%20on%20the%20site."
+             target="_blank" rel="noopener" style="color:#8b5e3c;font-weight:600">
+            message us on WhatsApp
+          </a> and we'll sort it out.
+        </div>`;
     }
   }
 

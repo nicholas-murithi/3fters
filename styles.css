@@ -910,6 +910,7 @@ body::before {
 .footer-credit {
   margin-top: 30px;
   padding-top: 20px;
+  padding-bottom: 20px;
   border-top: 1px solid rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
@@ -917,6 +918,14 @@ body::before {
   font-size: 12.5px;
   color: #888;
   letter-spacing: 0.3px;
+}
+
+@media (max-width: 600px) {
+  /* The fixed WhatsApp button sits bottom-left at ~76px tall including its
+     offset — give the footer credit line room so the button never covers it. */
+  .footer-credit {
+    padding-bottom: 80px;
+  }
 }
 
 .footer-credit .credit-tag {

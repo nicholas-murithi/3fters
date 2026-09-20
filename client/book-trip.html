@@ -247,25 +247,31 @@
 <!-- WHATSAPP THRIFTING SERVICE BUTTON -->
 <!-- ======================== -->
 <style>
-  #waFabBtn {
+    #waFabBtn {
     position: fixed;
     bottom: 24px;
     left: 24px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    height: 52px;
+    padding: 0 18px 0 14px;
+    border-radius: 30px;
     background: #25D366;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.3);
     cursor: pointer;
     z-index: 9999;
     border: none;
     transition: transform 0.2s ease;
   }
-  #waFabBtn:hover { transform: scale(1.08); }
-  #waFabBtn svg { width: 30px; height: 30px; }
+  #waFabBtn:hover { transform: scale(1.05); }
+  #waFabBtn svg { width: 26px; height: 26px; flex-shrink: 0; }
+  #waFabBtn span {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
 
   #waPopup {
     position: fixed;

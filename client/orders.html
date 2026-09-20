@@ -35,6 +35,8 @@
   : 'https://threefters.onrender.com/api';
   const token = getToken();
 
+  let hideCancelled = true;
+
   async function loadOrders() {
     const container = document.getElementById('ordersList');
 
@@ -43,6 +45,9 @@
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const orders = await res.json();
+
+      const visibleOrders = hideCancelled ? orders.filter(o => o.status !== 'cancelled') : orders;
+      const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
 
       if (!orders.length) {
         container.innerHTML = `
@@ -56,7 +61,7 @@
         return;
       }
 
-      container.innerHTML = orders.map(order => `
+      container.innerHTML = visibleOrders.map(order => `
         <div style="background:white;border-radius:20px;padding:25px;margin-bottom:20px">
           <div style="display:flex;gap:20px;align-items:center">
             <img
@@ -86,7 +91,7 @@
           ${order.status === 'cancelled' ? `
             <div style="margin-top:20px;padding:12px 15px;background:#fef2f2;border-radius:10px;
                         color:#991b1b;font-size:13px;font-weight:600">
-              ✕ This order was cancelled — the item is back on sale.
+              ✕ This order was cancelled the item is back on sale.
             </div>
           ` : `
           <div style="margin-top:20px">
@@ -136,11 +141,39 @@
         </div>
       `).join('');
 
+      if (hideCancelled && cancelledCount > 0) {
+        container.innerHTML += `
+          <div style="text-align:center;margin-top:10px">
+            <button onclick="showCancelledOrders()"
+              style="background:none;border:none;color:#999;font-size:13px;text-decoration:underline;cursor:pointer">
+              Show ${cancelledCount} cancelled order${cancelledCount === 1 ? '' : 's'}
+            </button>
+          </div>`;
+      }
+
+      if (!visibleOrders.length && orders.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>All your orders are cancelled.</p>
+            <button onclick="showCancelledOrders()"
+              style="background:none;border:none;color:#8b5e3c;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:8px">
+              Show cancelled orders
+            </button>
+          </div>`;
+      }
+
       // After rendering, fill in review slots for delivered orders
       orders.filter(o => o.status === 'delivered').forEach(o => renderReviewSlot(o.id));
 
     } catch (err) {
-      container.innerHTML = '<div class="empty-state">Could not load orders. Is the server running?</div>';
+      container.innerHTML = `
+        <div class="empty-state">
+          Something went wrong loading your orders. Please try again, or
+          <a href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27m%20having%20trouble%20loading%20my%20orders%20on%20the%20site."
+             target="_blank" rel="noopener" style="color:#8b5e3c;font-weight:600">
+            message us on WhatsApp
+          </a> and we'll sort it out.
+        </div>`;
     }
   }
 
@@ -190,6 +223,11 @@
       // Silently skip if reviews check fails, non-critical
     }
   }
+
+  window.showCancelledOrders = function() {
+    hideCancelled = false;
+    loadOrders();
+  };
 
   window.cancelOrder = async function(orderId) {
     if (!confirm('Cancel this order? The item will go back on sale for other buyers.')) return;

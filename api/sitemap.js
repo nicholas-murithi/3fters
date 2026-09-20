@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
   }
 
   const staticPages = [
-    '/client/index.html',
+    '/index.html',
     '/client/about.html'
   ];
 
