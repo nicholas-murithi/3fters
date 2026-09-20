@@ -25,6 +25,8 @@ app.use('/api/upload',   uploadRoutes);
 app.use('/api/admin',    adminRoutes);
 app.use('/api/reviews',  reviewRoutes);
 app.use('/api/chat',     chatRoutes);
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/bookings', require('./routes/bookings'));
 
 app.get('/', (req, res) => {
   res.json({ message: '3FTERS API is running on Neon PostgreSQL' });

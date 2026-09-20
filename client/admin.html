@@ -31,6 +31,8 @@
     <button onclick="showTab('users')"   class="tab-btn active" id="tab-users">Users</button>
     <button onclick="showTab('listings')" class="tab-btn"        id="tab-listings">Listings</button>
     <button onclick="showTab('orders')"  class="tab-btn"        id="tab-orders">Orders</button>
+    <button onclick="showTab('analytics')" class="tab-btn"      id="tab-analytics">Analytics</button>
+    <button onclick="showTab('bookings')" class="tab-btn"       id="tab-bookings">Thrifting Trips</button>
     <button onclick="adminLogout()" class="logout-btn">Log out</button>
   </nav>
 </header>
@@ -118,6 +120,13 @@
               style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
           </div>
         </div>
+        <div>
+          <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">
+            Fit Notes (optional — e.g. "Runs small, size up" or "Chest 42in, length 28in")
+          </label>
+          <textarea id="listingFitNotesInput" rows="2" placeholder="Runs true to size"
+            style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical"></textarea>
+        </div>
         <div style="display:flex;gap:10px">
           <div style="flex:1">
             <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Category</label>
@@ -147,6 +156,7 @@
                 <option value="belts">Belts</option>
                 <option value="ties">Ties</option>
                 <option value="cap">Cap</option>
+                <option value="Bags">Bags</option>
                 <option value="accessories">Other Accessories</option>
               </optgroup>
             </select>
@@ -155,6 +165,7 @@
             <label style="font-size:13px;color:#555;display:block;margin-bottom:4px">Condition</label>
             <select id="listingConditionInput"
               style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px">
+              <option value="new">New</option>
               <option value="like new">Like New</option>
               <option value="good">Good</option>
               <option value="fair">Fair</option>
@@ -198,6 +209,18 @@
   <div id="tabOrders" style="display:none">
     <h2 style="margin-bottom:20px">All Orders</h2>
     <div id="ordersList"></div>
+  </div>
+
+  <!-- ANALYTICS TAB -->
+  <div id="tabAnalytics" style="display:none">
+    <h2 style="margin-bottom:20px">Analytics (last 30 days)</h2>
+    <div id="analyticsContent">Loading...</div>
+  </div>
+
+  <!-- BOOKINGS TAB -->
+  <div id="tabBookings" style="display:none">
+    <h2 style="margin-bottom:20px">Upcoming Thrifting Trips</h2>
+    <div id="bookingsContent">Loading...</div>
   </div>
 
 </main>
@@ -503,7 +526,7 @@
   window.closeAddListing = function() {
     document.getElementById('addListingModal').style.display = 'none';
     document.getElementById('addListingError').style.display  = 'none';
-    ['listingImages','listingTitleInput','listingDescInput','listingPriceInput','listingOriginalPriceInput','listingSizeInput']
+    ['listingImages','listingTitleInput','listingDescInput','listingPriceInput','listingOriginalPriceInput','listingFitNotesInput','listingSizeInput']
       .forEach(id => document.getElementById(id).value = '');
   };
 
@@ -516,6 +539,7 @@
     const description = document.getElementById('listingDescInput').value.trim();
     const price       = document.getElementById('listingPriceInput').value;
     const originalPrice = document.getElementById('listingOriginalPriceInput').value;
+    const fitNotes     = document.getElementById('listingFitNotesInput').value.trim();
     const size        = document.getElementById('listingSizeInput').value.trim();
     const category    = document.getElementById('listingCategoryInput').value;
     const condition   = document.getElementById('listingConditionInput').value;
@@ -560,7 +584,7 @@
       const res = await fetch(`${API}/listings`, {
         method:  'POST',
         headers: authHeaders,
-        body:    JSON.stringify({ title, description, price, category, size, condition, images, gender, style, original_price: originalPrice || null })
+        body:    JSON.stringify({ title, description, price, category, size, condition, images, gender, style, original_price: originalPrice || null, fit_notes: fitNotes || null })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create listing');
@@ -581,13 +605,90 @@
   // TAB SWITCHING
   // ========================
   window.showTab = function(tab) {
-    ['users','listings','orders'].forEach(t => {
+    ['users','listings','orders','analytics','bookings'].forEach(t => {
       document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).style.display = 'none';
       document.getElementById(`tab-${t}`).classList.remove('active');
     });
     document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).style.display = 'block';
     document.getElementById(`tab-${tab}`).classList.add('active');
+    if (tab === 'analytics') loadAnalytics();
+    if (tab === 'bookings') loadBookings();
   };
+
+  async function loadBookings() {
+    const el = document.getElementById('bookingsContent');
+    el.innerHTML = 'Loading...';
+    try {
+      const res  = await fetch(`${API}/bookings`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('3fters_token')}` }
+      });
+      const data = await res.json();
+
+      if (!data.length) {
+        el.innerHTML = '<p style="color:#999">No upcoming bookings.</p>';
+        return;
+      }
+
+      el.innerHTML = data.map(b => `
+        <div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:10px">
+          <strong>${b.booking_date}</strong> at ${b.slot_time} — ${b.duration_hours}hr
+          <div style="font-size:13px;color:#555;margin-top:4px">${b.full_name} · ${b.phone}</div>
+          ${b.notes ? `<div style="font-size:12px;color:#999;margin-top:4px">"${b.notes}"</div>` : ''}
+          <div style="font-size:12px;color:#8b5e3c;text-transform:capitalize;margin-top:4px">${b.status}</div>
+        </div>
+      `).join('');
+    } catch (err) {
+      el.innerHTML = '<p style="color:#c00">Could not load bookings.</p>';
+    }
+  }
+
+  async function loadAnalytics() {
+    const el = document.getElementById('analyticsContent');
+    el.innerHTML = 'Loading...';
+    try {
+      const res  = await fetch(`${API}/analytics/summary`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('3fters_token')}` }
+      });
+      const data = await res.json();
+
+      const totalsMap = {};
+      data.totals.forEach(t => totalsMap[t.event_type] = Number(t.count));
+
+      const views    = totalsMap.page_view        || 0;
+      const carts    = totalsMap.add_to_cart       || 0;
+      const starts   = totalsMap.checkout_start    || 0;
+      const success  = totalsMap.checkout_success  || 0;
+
+      const pct = (a, b) => b > 0 ? ((a / b) * 100).toFixed(1) + '%' : '—';
+
+      el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:30px">
+          <div style="background:white;border-radius:16px;padding:20px;text-align:center">
+            <div style="font-size:28px;font-weight:700">${views}</div>
+            <p style="color:#777;font-size:13px;margin-top:5px">Item views</p>
+          </div>
+          <div style="background:white;border-radius:16px;padding:20px;text-align:center">
+            <div style="font-size:28px;font-weight:700">${carts}</div>
+            <p style="color:#777;font-size:13px;margin-top:5px">Added to cart <span style="color:#999">(${pct(carts, views)})</span></p>
+          </div>
+          <div style="background:white;border-radius:16px;padding:20px;text-align:center">
+            <div style="font-size:28px;font-weight:700">${starts}</div>
+            <p style="color:#777;font-size:13px;margin-top:5px">Checkout started <span style="color:#999">(${pct(starts, carts)})</span></p>
+          </div>
+          <div style="background:white;border-radius:16px;padding:20px;text-align:center">
+            <div style="font-size:28px;font-weight:700">${success}</div>
+            <p style="color:#777;font-size:13px;margin-top:5px">Checkout completed <span style="color:#999">(${pct(success, starts)})</span></p>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#999">
+          Funnel: item view → add to cart → checkout started → checkout completed.
+          Percentages show conversion from the previous step.
+        </p>
+      `;
+    } catch (err) {
+      el.innerHTML = '<p style="color:#777">Could not load analytics.</p>';
+    }
+  }
 
   // ========================
   // LOGOUT

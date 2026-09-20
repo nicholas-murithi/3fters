@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout  3FTERS</title>
+  <title>Checkout 3FTERS</title>
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -104,7 +104,7 @@
 
 <script type="module">
   import { protectPage, updateNav, getToken, getUser } from './js/auth.js';
-  import { buildThriftRequestUrl } from './js/listings.js';
+  import { buildThriftRequestUrl, trackEvent } from './js/listings.js';
 
   protectPage();
   updateNav();
@@ -215,6 +215,7 @@
     statusEl.style.display = 'none';
 
     try {
+      trackEvent('checkout_start');
       const succeeded = [];
       const soldOut    = [];
 
@@ -268,6 +269,7 @@
       const message = buildWhatsAppMessage(address, phone, succeeded);
       const waUrl    = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, '_blank');
+      trackEvent('checkout_success');
 
       localStorage.removeItem('3fters_cart');
 
@@ -425,10 +427,9 @@
     <small>Reserve items before they're listed</small>
   </a>
 
-  <a class="wa-option" target="_blank" rel="noopener"
-     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20book%20a%20personal%20thrifting%20trip%20(KSh%20300%2Fhr).%20Can%20we%20arrange%20a%20time%3F">
+  <a class="wa-option" href="/client/book-trip.html">
      Book a personal thrifting trip
-    <small>We shop with you in person KSh 300/hr</small>
+    <small>Pick a date & time KSh 300/hr</small>
   </a>
 </div>
 

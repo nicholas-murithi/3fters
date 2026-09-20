@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="3FTERS  Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
+  <meta name="description" content="3FTERS — Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
   <meta property="og:site_name" content="3FTERS"/>
   <meta property="og:type" content="website"/>
-  <meta property="og:title" content="3FTERS  Thrifted Style Finds"/>
+  <meta property="og:title" content="3FTERS — Thrifted Style Finds"/>
   <meta property="og:description" content="Affordable, unique, and sustainable thrifted clothing and shoes curated just for you."/>
   <meta property="og:image" content="https://3fters.vercel.app/client/eimages/logo.png"/>
   <meta property="og:url" content="https://3fters.vercel.app/client/index.html"/>
@@ -226,6 +226,7 @@
         <option value="belts">Belts</option>
         <option value="ties">Ties</option>
         <option value="cap">Cap</option>
+        <option value="bags">Bags</option>
         <option value="accessories">Other Accessories</option>
       </select>
       <select id="filterGender" style="display:none">
@@ -277,17 +278,14 @@
     <h2 data-i18n="featuresTitle">Why thrifters<br>love 3FTERS</h2>
     <div class="feature-grid">
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">❤</div>
         <h4 data-i18n="feature1Title">Curated with Care</h4>
         <p data-i18n="feature1Body">Every thrift item is cleaned, checked, and carefully selected.</p>
       </div>
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">📞</div>
         <h4 data-i18n="feature2Title">Friendly Support</h4>
         <p data-i18n="feature2Body">Need help choosing sizes or styles? We've got you.</p>
       </div>
       <div class="feature animate">
-        <div class="icon" aria-hidden="true">🔄</div>
         <h4 data-i18n="feature3Title">Easy Returns</h4>
         <p data-i18n="feature3Body">Simple and stress-free returns on thrift purchases.</p>
       </div>
@@ -328,6 +326,7 @@
       <a href="#" onclick="filterByCategory(event.target,'tee')">Vintage T-Shirts</a>
       <a href="#" onclick="filterByCategory(event.target,'jacket')">Jackets</a>
       <a href="#" onclick="filterByCategory(event.target,'cap')">Caps</a>
+      <a href="#" onclick="filterByCategory(event.target,'bags')">Bags</a>
       <a href="#" onclick="filterByCategory(event.target,'accessories')">Accessories</a>
     </div>
     <div>
@@ -586,10 +585,9 @@
     <small>Reserve items before they're listed</small>
   </a>
 
-  <a class="wa-option" target="_blank" rel="noopener"
-     href="https://wa.me/254721153625?text=Hi%203FTERS!%20I%27d%20like%20to%20book%20a%20personal%20thrifting%20trip%20(KSh%20300%2Fhr).%20Can%20we%20arrange%20a%20time%3F">
+  <a class="wa-option" href="/client/book-trip.html">
      Book a personal thrifting trip
-    <small>We shop with you in person  KSh 300/hr</small>
+    <small>Pick a date & time  KSh 300/hr</small>
   </a>
 </div>
 
