@@ -317,7 +317,7 @@
 <footer class="footer animate">
   <div class="footer-left">
     <h3>3FTERS</h3>
-    <p>3FTERS is a thrift-first fashion brand focused on affordable, unique, and sustainable clothing and shoes curated for Kenya.</p>
+    <p>3FTERS is a thrift first fashion brand focused on affordable, unique, and sustainable clothing and shoes curated for Kenya.</p>
     <div class="newsletter">
       <input type="email" id="newsletterEmail" placeholder="Enter your email for thrift drops" data-i18n-placeholder="newsletterPlaceholder">
       <button type="button" id="newsletterBtn" data-i18n="newsletterBtn">Submit</button>
@@ -383,7 +383,7 @@
   const mobileRoleLinks = document.getElementById('mobileRoleLinks');
 
   if (user) {
-    if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${user.full_name?.split(' ')[0] || 'Account'}</span>`;
+    if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${String(user.full_name?.split(' ')[0] || 'Account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>`;
 
     // Only show links that match the logged-in user's actual role
     if (mobileRoleLinks) {

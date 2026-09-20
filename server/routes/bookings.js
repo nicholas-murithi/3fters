@@ -46,6 +46,11 @@ router.post('/', protect, async (req, res) => {
     return res.status(400).json({ error: 'booking_date and slot_time are required' });
   }
 
+  if (typeof booking_date !== 'string' || typeof slot_time !== 'string' ||
+      (notes != null && (typeof notes !== 'string' || notes.length > 500))) {
+    return res.status(400).json({ error: 'Invalid booking details (notes are limited to 500 characters)' });
+  }
+
   const hour = Number(slot_time.split(':')[0]);
   if (!SLOT_HOURS.includes(hour)) {
     return res.status(400).json({ error: 'Invalid time slot' });

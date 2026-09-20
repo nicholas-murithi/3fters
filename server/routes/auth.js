@@ -5,9 +5,19 @@ const crypto         = require('crypto');
 const jwt            = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const pool           = require('../supabase/client');
+const rateLimit      = require('../middleware/rateLimit');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Speed bumps against bulk fake signups and password guessing. Generous on
+// purpose: campus / mobile-carrier networks put many real users behind one IP.
+const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20,
+  message: 'Too many sign-ups from this network. Please try again later.' });
+const loginLimiter    = rateLimit({ windowMs: 15 * 60 * 1000, max: 30,
+  message: 'Too many login attempts. Please try again in a few minutes.' });
+
+const isStr = v => typeof v === 'string';
 
 // Generate a short, shareable referral code from the user's name + random suffix
 function generateReferralCode(fullName) {
@@ -21,11 +31,26 @@ function generateReferralCode(fullName) {
 }
 
 // REGISTER
-router.post('/register', async (req, res) => {
-  const { full_name, email, phone, password, role, referral_code } = req.body;
+router.post('/register', registerLimiter, async (req, res) => {
+  // NOTE: `role` from the request body is deliberately ignored. Everyone who
+  // signs up is a buyer; admins are promoted from the admin panel / database.
+  const { full_name, email, phone, password, referral_code } = req.body;
 
   if (!full_name || !email || !phone || !password) {
     return res.status(400).json({ error: 'All fields are required' });
+  }
+  if (![full_name, email, phone, password].every(isStr) ||
+      (referral_code !== undefined && referral_code !== null && !isStr(referral_code))) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+  if (full_name.length > 100 || email.length > 254 || phone.length > 20) {
+    return res.status(400).json({ error: 'One of the fields is too long' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+  if (password.length < 6 || password.length > 72) {
+    return res.status(400).json({ error: 'Password must be 6–72 characters' });
   }
 
   try {
@@ -64,7 +89,7 @@ router.post('/register', async (req, res) => {
       `INSERT INTO users (full_name, email, phone, password, role, referral_code, referred_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, full_name, email, phone, role, referral_code`,
-      [full_name, email, phone, hashed, role || 'buyer', myCode, referredBy]
+      [full_name.trim(), email, phone.trim(), hashed, 'buyer', myCode, referredBy]
     );
 
     const user  = result.rows[0];
@@ -99,11 +124,14 @@ router.post('/register', async (req, res) => {
 });
 
 // LOGIN
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
+  }
+  if (!isStr(email) || !isStr(password)) {
+    return res.status(400).json({ error: 'Invalid input' });
   }
 
   try {
@@ -152,7 +180,7 @@ router.post('/login', async (req, res) => {
 });
 
 // GOOGLE SIGN-IN / SIGN-UP
-router.post('/google', async (req, res) => {
+router.post('/google', loginLimiter, async (req, res) => {
   const { credential } = req.body;
 
   if (!credential) {
@@ -183,6 +211,25 @@ router.post('/google', async (req, res) => {
 
     if (result.rows.length) {
       user = result.rows[0];
+
+      // Password sign-ups never prove they own the email. If this account was
+      // created that way, someone else (a pre-hijacker) may know its password.
+      // Google has just proven the real owner of this address is signing in,
+      // so: replace the password with an unusable one, wipe the name/phone
+      // that was typed in at sign-up, and invalidate every token issued before
+      // now. (`=== false` so this is skipped until the DB migration is run.)
+      if (user.email_verified === false) {
+        const lockedHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+        const upd = await pool.query(
+          `UPDATE users
+           SET password = $1, email_verified = true, sessions_valid_after = NOW(),
+               full_name = $2, phone = '', avatar_url = COALESCE(avatar_url, $3)
+           WHERE id = $4
+           RETURNING *`,
+          [lockedHash, name || email.split('@')[0], picture || null, user.id]
+        );
+        user = upd.rows[0];
+      }
     } else {
       // Google users don't set a password or give a phone up front - fill in
       // a random, unusable password hash so existing NOT NULL columns are satisfied.
@@ -190,8 +237,8 @@ router.post('/google', async (req, res) => {
       const hashed          = await bcrypt.hash(randomPassword, 10);
 
       const insertResult = await pool.query(
-        `INSERT INTO users (full_name, email, phone, password, role, avatar_url)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO users (full_name, email, phone, password, role, avatar_url, email_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, true)
          RETURNING id, full_name, email, phone, role, avatar_url`,
         [name || email.split('@')[0], email, '', hashed, 'buyer', picture || null]
       );

@@ -77,7 +77,7 @@
             <div>
               ${data.referred_users.map(u => `
                 <div style="padding:8px 0;border-bottom:1px solid #f2f2f2;font-size:14px">
-                  ${u.full_name}
+                  ${String(u.full_name ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
                 </div>
               `).join('')}
             </div>

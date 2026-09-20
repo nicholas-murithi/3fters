@@ -207,16 +207,21 @@ export async function loadReviews(listingId) {
     container.innerHTML = data.reviews.map(r => `
       <div style="border-bottom:1px solid #eee;padding:10px 0">
         <div style="display:flex;justify-content:space-between">
-          <strong style="font-size:13px">${r.buyer_name}</strong>
-          <span style="color:#e8a33d;font-size:13px">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+          <strong style="font-size:13px">${esc(r.buyer_name)}</strong>
+          <span style="color:#e8a33d;font-size:13px">${'★'.repeat(Number(r.rating) || 0)}${'☆'.repeat(5 - (Number(r.rating) || 0))}</span>
         </div>
-        ${r.comment ? `<p style="font-size:13px;color:#555;margin-top:4px">${r.comment}</p>` : ''}
+        ${r.comment ? `<p style="font-size:13px;color:#555;margin-top:4px">${esc(r.comment)}</p>` : ''}
       </div>
     `).join('');
   } catch (err) {
     container.innerHTML = '<p style="font-size:13px;color:#777">Could not load reviews.</p>';
   }
 }
+
+// Escape user-supplied text before it goes into innerHTML.
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
 
 // ========================
 // ADD TO CART

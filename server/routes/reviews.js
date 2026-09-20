@@ -10,8 +10,11 @@ router.post('/', protect, async (req, res) => {
   if (!order_id || !rating) {
     return res.status(400).json({ error: 'order_id and rating are required' });
   }
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+  if (!Number.isInteger(Number(rating)) || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Rating must be a whole number between 1 and 5' });
+  }
+  if (comment != null && (typeof comment !== 'string' || comment.length > 1000)) {
+    return res.status(400).json({ error: 'Comment must be text under 1000 characters' });
   }
 
   try {

@@ -3,12 +3,42 @@ const router     = express.Router();
 const pool       = require('../supabase/client');
 const protect    = require('../middleware/authMiddleware');
 const { sendSMS } = require('./sms');
+const rateLimit  = require('../middleware/rateLimit');
+
+// Stops one account from reserving the whole catalogue (each order flips an
+// item to 'pending' and sends you an SMS). Unpaid orders also expire on their
+// own — see server/jobs/expirePendingOrders.js.
+const MAX_PENDING_PER_USER = Number(process.env.MAX_PENDING_ORDERS_PER_USER) || 10;
+const orderLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max:      30,
+  key:      req => 'user:' + req.user.id,
+  message:  'You are placing orders too quickly. Please try again later.'
+});
 
 // POST create order
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, orderLimiter, async (req, res) => {
   const { listing_id, delivery_address } = req.body;
 
+  if (!listing_id || (typeof listing_id !== 'string' && typeof listing_id !== 'number')) {
+    return res.status(400).json({ error: 'listing_id is required' });
+  }
+  if (typeof delivery_address !== 'string' || !delivery_address.trim() || delivery_address.length > 300) {
+    return res.status(400).json({ error: 'A delivery address (under 300 characters) is required' });
+  }
+
   try {
+    // Cap how many unpaid orders one account can hold at a time
+    const open = await pool.query(
+      `SELECT COUNT(*)::int AS n FROM orders WHERE buyer_id = $1 AND status = 'pending'`,
+      [req.user.id]
+    );
+    if (open.rows[0].n >= MAX_PENDING_PER_USER) {
+      return res.status(429).json({
+        error: 'You have too many unpaid orders. Please complete or cancel some before ordering more.'
+      });
+    }
+
     // Get listing (for price/seller info)
     const listingRes = await pool.query(
       'SELECT * FROM listings WHERE id = $1', [listing_id]
@@ -43,7 +73,7 @@ router.post('/', protect, async (req, res) => {
         `INSERT INTO orders (buyer_id, seller_id, listing_id, amount, delivery_address)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
-        [req.user.id, listing.seller_id, listing_id, listing.price, delivery_address]
+        [req.user.id, listing.seller_id, listing_id, listing.price, delivery_address.trim()]
       );
     } catch (insertErr) {
       // Order creation failed after we'd already claimed the listing —
@@ -67,7 +97,7 @@ router.post('/', protect, async (req, res) => {
       if (seller?.phone) {
         await sendSMS(
           seller.phone,
-          `Hi ${seller.full_name}! You have a new order on 3FTERS for "${listing.title}" - KSh ${listing.price}. Log in to your dashboard to confirm.`
+          `Hi ${seller.full_name}! You have a new order on 3FTERS for "${listing.title}"  KSh ${listing.price}. Log in to your dashboard to confirm.`
         );
       }
     } catch (smsErr) {
@@ -147,7 +177,7 @@ router.patch('/:id/status', protect, async (req, res) => {
         return res.status(403).json({ error: 'Not authorized to cancel this order' });
       }
       if (isBuyer && !isOwner && !isAdmin && order.status !== 'pending') {
-        return res.status(400).json({ error: 'This order can no longer be cancelled — it has already been confirmed. Please contact us on WhatsApp.' });
+        return res.status(400).json({ error: 'This order can no longer be cancelled it has already been confirmed. Please contact us on WhatsApp.' });
       }
     } else if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Not authorized to update this order' });

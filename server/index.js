@@ -42,6 +42,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`3FTERS server running on http://localhost:${PORT}`);
+  require('./jobs/expirePendingOrders').start(); // release items held by unpaid orders
 });
 
 // Keep server awake on Render free tier
