@@ -1,8 +1,9 @@
 User-agent: *
-Allow: /client/index.html
+Allow: /
 Allow: /client/about.html
 Allow: /client/listing.html
 Allow: /client/eimages/
+Allow: /eimages/
 Disallow: /client/admin.html
 Disallow: /client/checkout.html
 Disallow: /client/cart.html
