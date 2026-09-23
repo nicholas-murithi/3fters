@@ -591,10 +591,12 @@ body::before {
 
 .price-old {
   text-decoration: line-through;
-  color: #999;
-  font-weight: 400;
-  font-size: 12px;
-  margin-right: 4px;
+  text-decoration-color: #d32f2f;
+  text-decoration-thickness: 2px;
+  color: #d32f2f;
+  font-weight: 500;
+  font-size: 14px;
+  margin-right: 6px;
 }
 
 .sale-badge {
