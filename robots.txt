@@ -10,5 +10,7 @@ Disallow: /client/orders.html
 Disallow: /client/login.html
 Disallow: /client/register.html
 Disallow: /client/wishlist.html
+Disallow: /client/book-trip.html
+Disallow: /client/referrals.html
 
-Sitemap: https://3fters.vercel.app/sitemap.xml
+Sitemap: https://www.3ftersstore.co.ke/sitemap.xml

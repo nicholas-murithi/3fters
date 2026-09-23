@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
     // fall through to generic fallback below
   }
 
-  const canonicalUrl = `https://3fters.vercel.app/client/listing.html?id=${encodeURIComponent(id)}`;
+  const canonicalUrl = `https://www.3ftersstore.co.ke/client/listing.html?id=${encodeURIComponent(id)}`;
 
   const title = item
     ? `${item.title} — KSh ${Number(item.price).toLocaleString()} | 3FTERS`
@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     ? `${item.condition || 'Thrifted'} · ${item.size ? 'Size ' + item.size : 'One size'} — ${item.description ? item.description.slice(0, 140) : 'Shop this item and more on 3FTERS.'}`
     : 'Affordable, unique, and sustainable thrifted clothing and shoes curated just for you.';
 
-  const image = item?.images?.[0] || 'https://3fters.vercel.app/client/eimages/logo.png';
+  const image = item?.images?.[0] || 'https://www.3ftersstore.co.ke/client/eimages/logo.png';
 
   const html = `<!DOCTYPE html>
 <html lang="en">

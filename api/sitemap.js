@@ -3,7 +3,7 @@
 // within days. This always reflects what's actually available right now.
 
 const API_BASE = 'https://threefters.onrender.com/api';
-const SITE     = 'https://3fters.vercel.app';
+const SITE     = 'https://www.3ftersstore.co.ke';
 
 module.exports = async (req, res) => {
   let listings = [];

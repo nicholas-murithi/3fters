@@ -9,7 +9,7 @@ const clientIp = require('../utils/clientIp');
 // so it doesn't invent policies that don't exist.
 const SYSTEM_PROMPT = `
 You are the official customer support assistant for 3FTERS, a Kenyan thrift
-clothing e-commerce store (3fters.vercel.app). You ONLY answer questions
+clothing e-commerce store (www.3ftersstore.co.ke). You ONLY answer questions
 about 3FTERS the store, its products, categories, sizing, condition
 grading, ordering, payment, and delivery. You do not answer questions on
 any other topic, no matter how the question is phrased or framed
@@ -27,9 +27,9 @@ FACTS ABOUT 3FTERS (use these, don't invent extra policies):
   Jeans, Sweatpants, Official Pants, Sport Tracks, Shirts, Vintage Tees,
   Jackets, Shorts, Streetwear, Casual Shoes, Official Shoes, Socks, Belts,
   Ties, and Caps.
-- Item condition is graded as "New","Like New", "Good", or "Fair".
+- Item condition is graded as "Like New", "Good", or "Fair".
 - To buy: add items to cart, then checkout. Checkout currently happens via
-  WhatsApp  the customer's order details (items, total, delivery address,
+  WhatsApp — the customer's order details (items, total, delivery address,
   phone) are sent as a pre-filled WhatsApp message to 3FTERS, who then
   confirms the total and sends M-Pesa payment instructions directly in
   WhatsApp. There is no automatic M-Pesa STK push at this time.
@@ -42,13 +42,13 @@ FACTS ABOUT 3FTERS (use these, don't invent extra policies):
   customer to check the website directly or message 3FTERS on WhatsApp,
   rather than guessing.
 
-Keep answers VERY short 1 to 2 short sentences, under 40 words total,
+Keep answers VERY short  1 to 2 short sentences, under 40 words total,
 unless the customer explicitly asks for more detail. Do not use markdown
 headers or bullet lists for simple questions; write like a friendly human
 support agent texting back quickly.
 `.trim();
 
-// Simple in-memory rate limiter: 4 messages per hour per visitor ──
+// ── Simple in-memory rate limiter: 4 messages per hour per visitor ──
 // Note: this resets if the server restarts/redeploys (e.g. Render free
 // tier idling out), and tracks by IP so people sharing a network share
 // a limit. Good enough for a small store; swap for a DB-backed limiter
@@ -72,7 +72,7 @@ function isRateLimited(ip) {
   return { limited: false };
 }
 
-// Global daily cap: a hard ceiling on Anthropic spend per day, no matter how
+// ── Global daily cap: a hard ceiling on Anthropic spend per day, no matter how
 // many different IPs someone uses. Override with CHAT_DAILY_CAP on Render.
 const DAILY_CAP = Number(process.env.CHAT_DAILY_CAP) || 300;
 let capDay   = '';
@@ -118,7 +118,7 @@ router.post('/message', async (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
   if (message.length > 500) {
-    return res.status(400).json({ error: 'Message is too long please keep it under 500 characters.' });
+    return res.status(400).json({ error: 'Message is too long  please keep it under 500 characters.' });
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
