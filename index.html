@@ -50,7 +50,7 @@
   <button class="menu-toggle" id="menuToggle" aria-label="Open navigation menu" aria-expanded="false">☰</button>
   <div class="logo">
     <a href="/">
-      <img src="eimages/logo1.png" loading="lazy" alt="3FTERS Thrift Store">
+      <img src="eimages/logo.png" loading="lazy" alt="3FTERS Thrift Store">
     </a>
   </div>
   <div style="display:flex;align-items:center;gap:15px">
@@ -383,7 +383,11 @@
   const mobileRoleLinks = document.getElementById('mobileRoleLinks');
 
   if (user) {
-    if (mobileNavAuth) mobileNavAuth.innerHTML = `<span style="display:block;padding:12px 0;color:#777">👤 ${String(user.full_name?.split(' ')[0] || 'Account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>`;
+    if (mobileNavAuth) mobileNavAuth.innerHTML = `
+      <span style="display:block;padding:12px 0;color:#777">👤 ${String(user.full_name?.split(' ')[0] || 'Account').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>
+      <a href="client/referrals.html"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>Refer a friend</a>
+      <a href="client/wishlist.html">♡ Wishlist</a>
+    `;
 
     // Only show links that match the logged-in user's actual role
     if (mobileRoleLinks) {

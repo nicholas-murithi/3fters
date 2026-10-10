@@ -27,6 +27,23 @@
   <nav id="authNav" class="auth-nav"></nav>
 </header>
 
+<!-- MOBILE NAV -->
+<div class="nav-group" id="navGroup" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <div class="mobile-nav-header">
+    <button class="close-menu" id="closeMenu" aria-label="Close navigation menu">✕</button>
+  </div>
+  <nav class="mobile-nav">
+    <h4>Account</h4>
+    <div id="mobileNavAuth"></div>
+    <a href="/client/cart.html">🛒 My Cart</a>
+    <a href="/client/orders.html">My Orders</a>
+
+    <h4>Info</h4>
+    <a href="/client/about.html">About 3FTERS</a>
+    <a href="/client/about.html#contact">Contact Us</a>
+  </nav>
+</div>
+
 <main class="listing-main" id="listingDetail">
 
   <div class="listing-grid">
@@ -167,6 +184,8 @@
 
 <script type="module">
   import { updateNav } from './js/auth.js';
+  import { initMobileNav } from './js/mobile-nav.js';
+  initMobileNav();
   import { loadSingleListing, addToCart } from './js/listings.js';
 
   updateNav();

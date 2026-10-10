@@ -1223,4 +1223,6 @@ body::before {
   .filter-bar { flex-direction: column; }
   .filter-bar input, .filter-bar select { width: 100%; }
   .auth-nav .nav-register { display: none; }
+  .auth-nav .nav-refer { display: none; }
+  .auth-nav .nav-wishlist { display: none; }
 }

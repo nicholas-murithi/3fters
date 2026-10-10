@@ -11,9 +11,28 @@
 <body>
 
 <header class="header">
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
   <div class="logo"><a href="../index.html">3FTERS</a></div>
   <nav id="authNav" class="auth-nav"></nav>
 </header>
+
+<!-- MOBILE NAV -->
+<div class="nav-group" id="navGroup" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <div class="mobile-nav-header">
+    <button class="close-menu" id="closeMenu" aria-label="Close navigation menu">✕</button>
+  </div>
+  <nav class="mobile-nav">
+    <h4>Account</h4>
+    <div id="mobileNavAuth"></div>
+    <a href="/client/cart.html">🛒 My Cart</a>
+    <a href="/client/orders.html">My Orders</a>
+
+    <h4>Info</h4>
+    <a href="/client/about.html">About 3FTERS</a>
+    <a href="/client/about.html#contact">Contact Us</a>
+  </nav>
+</div>
+
 
 <main style="max-width:1100px;margin:0 auto;padding:40px 20px">
   <h1 style="margin-bottom:8px">My Wishlist</h1>
@@ -26,10 +45,12 @@
 
 <script type="module">
   import { updateNav, getToken } from './js/auth.js';
+  import { initMobileNav } from './js/mobile-nav.js';
   import { formatPrice } from './js/preferences.js';
   import { renderOutOfStockNotice, addToCart, toggleWishlist } from './js/listings.js';
 
   updateNav();
+  initMobileNav();
 
   const API = window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1'
