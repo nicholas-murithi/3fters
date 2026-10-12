@@ -1517,3 +1517,33 @@ body::before {
   .auth-nav .nav-refer { display: none; }
   .auth-nav .nav-wishlist { display: none; }
 }
+/* Social icons: brand-colored badges, visible on any background */
+.top-right a[href*="instagram.com"],
+.top-right a[href*="tiktok.com"] {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  justify-content: center;
+  color: #fff !important;
+  transition: transform 0.2s ease;
+}
+.top-right a[href*="instagram.com"] svg,
+.top-right a[href*="tiktok.com"] svg {
+  width: 17px;
+  height: 17px;
+}
+.top-right a[href*="instagram.com"] {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%) !important;
+}
+.top-right a[href*="tiktok.com"] {
+  background: #000 !important;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+.top-right a[href*="instagram.com"]:hover,
+.top-right a[href*="tiktok.com"]:hover {
+  transform: scale(1.12);
+}
+
+/* Mobile menu: colored icons */
+.mobile-nav a[href*="instagram.com"] svg { color: #e4405f; }
+.mobile-nav a[href*="tiktok.com"] svg { color: #000; }
