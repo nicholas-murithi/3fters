@@ -7,6 +7,27 @@
   <link rel="stylesheet" href="styles/main.css"/>
   <link rel="stylesheet" href="styles/auth.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script>
+  // Defined BEFORE Google's script loads, so the callback always exists when
+  // Google looks for it. (The page's module script runs later and used to
+  // define this, which could lose the race.)
+  window.handleGoogleCredential = async function (response) {
+    const errorEl = document.getElementById('authError');
+    errorEl.classList.add('hidden');
+    try {
+      const { loginWithGoogle } = await import('./js/auth.js');
+      const { error } = await loginWithGoogle(response.credential);
+      if (error) {
+        errorEl.textContent = error.message;
+        errorEl.classList.remove('hidden');
+      }
+    } catch (e) {
+      console.error('Google sign-in error:', e);
+      errorEl.textContent = 'Google sign-in failed. Please try again.';
+      errorEl.classList.remove('hidden');
+    }
+  };
+</script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=2">
@@ -43,6 +64,10 @@
       </div>
     </div>
 
+    <p style="text-align:right;margin:-6px 0 14px;font-size:13px;">
+      <a href="forgot-password.html">Forgot password?</a>
+    </p>
+
     <button class="auth-btn" id="loginBtn">Log In</button>
 
     <div class="auth-divider"><span>or</span></div>
@@ -58,8 +83,7 @@
       data-theme="outline"
       data-text="continue_with"
       data-size="large"
-      data-width="100%"
-      style="display:none">
+      data-width="100%">
     </div>
 
     <p class="auth-switch">
@@ -69,21 +93,8 @@
 </div>
 
 <script type="module">
-  import { login, loginWithGoogle } from './js/auth.js';
+  import { login } from './js/auth.js';
 
-  // Google Identity Services calls this by name (see data-callback above),
-  // so it has to live on window, not stay a module-scoped import.
-  window.handleGoogleCredential = async (response) => {
-    const errorEl = document.getElementById('authError');
-    errorEl.classList.add('hidden');
-
-    const { error } = await loginWithGoogle(response.credential);
-
-    if (error) {
-      errorEl.textContent = error.message;
-      errorEl.classList.remove('hidden');
-    }
-  };
 
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const email    = document.getElementById('loginEmail').value.trim();
