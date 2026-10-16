@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Thrifting trips 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button></div>
+    <div class="err" id="err"></div>
+
+    <h1 class="title">Thrifting trips</h1>
+    <p class="sub">Upcoming bookings (cancelled ones are hidden).</p>
+    <div class="card"><div class="table-scroll" id="list"><div class="empty">Loading…</div></div></div>
+
+  <script type="module">
+    import { mountShell, apiJson, apiSend, esc, showError, waLink } from './js/admin-dashboard.js';
+    mountShell('trips');
+    const STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
+
+    async function load() {
+      try {
+        showError('');
+        const data = await apiJson('/bookings');
+        document.getElementById('list').innerHTML = data.length ? `
+          <table class="t" style="min-width:720px"><thead><tr><th>Date</th><th>Time</th><th>Length</th><th>Customer</th><th>Notes</th><th>Status</th></tr></thead><tbody>
+          ${data.map(b => { const wa = waLink(b.phone); return `<tr>
+            <td>${esc(String(b.booking_date).slice(0, 10))}</td><td>${esc(String(b.slot_time).slice(0, 5))}</td><td>${esc(b.duration_hours)} hr</td>
+            <td>${esc(b.full_name)}<small>${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener">${esc(b.phone)} · WhatsApp</a>` : esc(b.phone || '')}</small></td>
+            <td style="max-width:240px">${esc(b.notes || '—')}</td>
+            <td><select data-id="${esc(b.id)}" data-prev="${esc(b.status)}">${STATUSES.map(s => `<option value="${s}" ${b.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`; }).join('')}
+          </tbody></table>` : '<div class="empty">No upcoming bookings.</div>';
+        document.querySelectorAll('#list select').forEach(sel => sel.onchange = async () => {
+          if (sel.value === 'cancelled' && !confirm('Cancel this booking? It will disappear from this list.')) { sel.value = sel.dataset.prev; return; }
+          sel.disabled = true;
+          try { showError(''); await apiSend('PATCH', `/bookings/${sel.dataset.id}/status`, { status: sel.value }); await load(); }
+          catch (e) { showError(e.message); await load(); }
+        });
+      } catch (e) { showError(e.message); }
+    }
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

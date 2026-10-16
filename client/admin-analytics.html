@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Analytics 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><div class="spacer"></div></div>
+    <div class="err" id="err"></div>
+
+    <div class="card-head" style="margin-bottom:0"><div><h1 class="title">Analytics</h1><p class="sub">Track your performance and growth.</p></div><select class="pill" id="range"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></div>
+
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="card stat"><div class="label">Total revenue</div><div class="value" id="sRevenue">—</div><div id="gRevenue"></div></div>
+      <div class="card stat"><div class="label">Total orders</div><div class="value" id="sOrders">—</div><div id="gOrders"></div></div>
+      <div class="card stat"><div class="label">Item views</div><div class="value" id="sViews">—</div><div id="gViews"></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head"><h3>Sales overview</h3></div>
+      <div class="chart-box"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>Orders by status</h3>
+        <div class="donut-wrap"><div class="chart-box"><canvas id="donut"></canvas></div><ul class="legend" id="legend"></ul></div>
+      </div>
+      <div class="card">
+        <h3>Top categories</h3>
+        <div class="table-scroll" id="cats"></div>
+      </div>
+    </div>
+
+  <script type="module">
+    import { mountShell, apiJson, esc, kes, growth, dayLabel, showError } from './js/admin-dashboard.js';
+    mountShell('analytics');
+    const COLORS = { pending: '#cba15a', paid: '#8b5e3c', shipped: '#5a8fa8', delivered: '#6b8f5a', cancelled: '#b5493f' };
+    let bar, donut;
+    async function load() {
+      const days = document.getElementById('range').value;
+      try {
+        showError('');
+        const d = await apiJson(`/admin/stats/analytics?days=${days}`);
+        const $ = id => document.getElementById(id);
+        $('sRevenue').textContent = kes(d.revenue.value); $('gRevenue').innerHTML = growth(d.revenue.change) + ' <small>vs previous</small>';
+        $('sOrders').textContent = d.orders.value;        $('gOrders').innerHTML  = growth(d.orders.change)  + ' <small>vs previous</small>';
+        if (d.views) { $('sViews').textContent = d.views.value.toLocaleString(); $('gViews').innerHTML = growth(d.views.change) + ' <small>vs previous</small>'; }
+        else { $('sViews').textContent = '—'; $('gViews').innerHTML = '<small>No tracking data yet</small>'; }
+
+        const short = d.series.length <= 7;
+        const max = Math.max(...d.series.map(p => p.revenue));
+        bar?.destroy();
+        bar = new Chart($('barChart'), {
+          type: 'bar',
+          data: { labels: d.series.map(p => dayLabel(p.day, short)), datasets: [{ data: d.series.map(p => p.revenue), borderRadius: 8, backgroundColor: d.series.map(p => p.revenue === max && max > 0 ? '#3c2413' : '#8b5e3c') }] },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => kes(c.parsed.y) } } },
+                     scales: { y: { beginAtZero: true, ticks: { callback: v => v >= 1000 ? v / 1000 + 'k' : v } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } } } }
+        });
+
+        const total = d.byStatus.reduce((s, r) => s + r.count, 0);
+        donut?.destroy();
+        if (total) {
+          donut = new Chart($('donut'), { type: 'doughnut', data: { labels: d.byStatus.map(r => r.status), datasets: [{ data: d.byStatus.map(r => r.count), backgroundColor: d.byStatus.map(r => COLORS[r.status] || '#ccc'), borderWidth: 0 }] },
+            options: { maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } } });
+        }
+        $('legend').innerHTML = total ? d.byStatus.map(r => `<li><i style="background:${COLORS[r.status] || '#ccc'}"></i><span style="text-transform:capitalize">${esc(r.status)}</span><span>${Math.round(r.count / total * 100)}%</span></li>`).join('') : '<li class="empty">No orders in this period.</li>';
+
+        $('cats').innerHTML = d.categories.length ? `
+          <table class="t" style="min-width:380px"><thead><tr><th>Category</th><th>Sold</th><th>Revenue</th><th>Growth</th></tr></thead><tbody>
+          ${d.categories.map(c => `<tr><td>${esc(c.category)}</td><td>${c.units}</td><td>${kes(c.revenue)}</td><td>${growth(c.change)}</td></tr>`).join('')}
+          </tbody></table>` : '<div class="empty">No sales in this period.</div>';
+      } catch (e) { showError(e.message); }
+    }
+    document.getElementById('range').addEventListener('change', load);
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

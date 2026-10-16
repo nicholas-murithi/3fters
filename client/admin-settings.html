@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Settings 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><div class="spacer"></div></div>
+    <div class="err" id="err"></div>
+
+    <h1 class="title">Settings</h1>
+    <p class="sub">Your admin account and shortcuts.</p>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="profile">
+        <div class="avatar" id="avatar">A</div>
+        <div><h2 id="name">Admin</h2><p id="email"></p><p id="phone"></p><p id="loc"></p></div>
+      </div>
+    </div>
+
+    <div class="card" id="links"></div>
+    <button class="logout-row" id="logout"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</button>
+
+  <script type="module">
+    import { mountShell, apiJson, esc, initials, icon, user, BASE, logout, showError } from './js/admin-dashboard.js';
+    mountShell('settings');
+
+    function paint(u) {
+      document.getElementById('name').textContent  = u.full_name || 'Admin';
+      document.getElementById('email').textContent = u.email || '';
+      document.getElementById('phone').textContent = u.phone || '';
+      document.getElementById('loc').textContent   = u.location || '';
+      const av = document.getElementById('avatar');
+      if (u.avatar_url && /^https:\/\//.test(u.avatar_url)) { av.innerHTML = ''; const img = new Image(); img.src = u.avatar_url; img.alt = ''; av.appendChild(img); }
+      else av.textContent = initials(u.full_name);
+    }
+    paint(user);
+    apiJson('/auth/me').then(paint).catch(e => showError(e.message));
+
+    const rows = [
+      ['file',  'Orders',          'Confirm payments and update delivery status', `${BASE}/admin-orders.html`],
+      ['box',   'Listings',        'Add and remove items', `${BASE}/admin-listings.html`],
+      ['users', 'Users',           'View customers and manage accounts', `${BASE}/admin-users.html`],
+      ['trip',  'Thrifting trips', 'Bookings from customers', `${BASE}/admin-trips.html`],
+      ['shop',  'View shop',       'See your store as customers do', '/']
+    ];
+    document.getElementById('links').innerHTML = rows.map(r =>
+      `<a class="list-row" href="${r[3]}"><span class="ic">${icon(r[0])}</span><span><b>${r[1]}</b><small>${r[2]}</small></span><span class="chev">›</span></a>`).join('');
+    document.getElementById('logout').addEventListener('click', logout);
+  </script>
+  </main>
+</div>
+</body>
+</html>

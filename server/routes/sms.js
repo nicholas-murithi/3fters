@@ -18,7 +18,7 @@ async function sendSMS(to, message) {
     const result = await sms.send({
       to:      [phone],
       message: message,
-      from:    '3FTERS'
+      ...(process.env.AT_SENDER_ID ? { from: process.env.AT_SENDER_ID } : {})
     });
 
     console.log('SMS sent:', result);

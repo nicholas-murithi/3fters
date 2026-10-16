@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Orders 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button></div>
+    <div class="err" id="err"></div>
+
+    <h1 class="title">Orders</h1>
+    <p class="sub">Confirm payments, ship, and mark delivered. Tap a customer's number to message them on WhatsApp.</p>
+
+    <div class="chips" id="chips"></div>
+    <div class="toolbar"><div class="grow"><input type="search" id="q" placeholder="Search item, customer, phone or address…"></div></div>
+    <div class="card"><div class="table-scroll" id="list"><div class="empty">Loading…</div></div></div>
+
+  <script type="module">
+    import { mountShell, apiJson, apiSend, esc, kes, statusPill, showError, waLink, safeImg } from './js/admin-dashboard.js';
+    mountShell('orders');
+
+    const STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
+    let all = [], filter = new URLSearchParams(location.search).get('status') || 'all';
+    if (filter !== 'all' && !STATUSES.includes(filter)) filter = 'all';
+
+    function render() {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      const counts = { all: all.length };
+      STATUSES.forEach(s => counts[s] = all.filter(o => o.status === s).length);
+      document.getElementById('chips').innerHTML = ['all', ...STATUSES].map(s =>
+        `<button class="chip ${filter === s ? 'active' : ''}" data-s="${s}">${s === 'all' ? 'All' : s[0].toUpperCase() + s.slice(1)} (${counts[s]})</button>`).join('');
+      document.querySelectorAll('.chip').forEach(b => b.onclick = () => { filter = b.dataset.s; render(); });
+
+      const rows = all.filter(o => (filter === 'all' || o.status === filter) &&
+        (!q || [o.title, o.buyer_name, o.buyer_phone, o.delivery_address].some(v => String(v || '').toLowerCase().includes(q))));
+
+      document.getElementById('list').innerHTML = rows.length ? `
+        <table class="t" style="min-width:820px"><thead><tr><th>Item</th><th>Customer</th><th>Deliver to</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>
+        ${rows.map(o => {
+          const wa = waLink(o.buyer_phone);
+          const img = safeImg(o.image);
+          return `<tr>
+            <td><div style="display:flex;gap:10px;align-items:center">${img ? `<img class="thumb" src="${esc(img)}" alt="">` : ''}<span>${esc(o.title || '—')}</span></div></td>
+            <td>${esc(o.buyer_name || '—')}<small>${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener">${esc(o.buyer_phone)} · WhatsApp</a>` : esc(o.buyer_phone || '')}</small></td>
+            <td style="max-width:220px">${esc(o.delivery_address || '—')}</td>
+            <td>${kes(o.amount)}</td>
+            <td><select data-id="${esc(o.id)}" data-prev="${esc(o.status)}">${STATUSES.map(s => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+            <td>${new Date(o.created_at).toLocaleDateString('en-GB')}</td></tr>`;
+        }).join('')}</tbody></table>` : '<div class="empty">No orders match.</div>';
+
+      document.querySelectorAll('#list select').forEach(sel => sel.onchange = async () => {
+        const status = sel.value;
+        if (status === 'cancelled' && !confirm('Cancel this order? The item goes back on sale.')) { sel.value = sel.dataset.prev; return; }
+        if (status === 'shipped'   && !confirm('Mark as shipped? The buyer will be sent an SMS.')) { sel.value = sel.dataset.prev; return; }
+        sel.disabled = true;
+        try { showError(''); await apiSend('PATCH', `/orders/${sel.dataset.id}/status`, { status }); await load(); }
+        catch (e) { showError(e.message); await load(); }
+      });
+    }
+
+    async function load() {
+      try { showError(''); all = await apiJson('/admin/stats/orders'); render(); }
+      catch (e) { showError(e.message); }
+    }
+    document.getElementById('q').addEventListener('input', render);
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

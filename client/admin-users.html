@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Users 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button></div>
+    <div class="err" id="err"></div>
+
+    <div class="card-head" style="margin-bottom:6px"><div><h1 class="title">Users</h1><p class="sub" style="margin-bottom:12px" id="count">Everyone with an account.</p></div><button class="btn ghost" id="convertBtn" style="display:none">Convert all sellers to buyers</button></div>
+    <div class="toolbar"><div class="grow"><input type="search" id="q" placeholder="Search name, email or phone…"></div></div>
+    <div class="card"><div class="table-scroll" id="list"><div class="empty">Loading…</div></div></div>
+
+  <script type="module">
+    import { mountShell, apiJson, apiSend, esc, showError, waLink, user } from './js/admin-dashboard.js';
+    mountShell('users');
+    let all = [];
+    const $ = id => document.getElementById(id);
+
+    function render() {
+      const q = $('q').value.trim().toLowerCase();
+      const rows = all.filter(u => !q || [u.full_name, u.email, u.phone].some(v => String(v || '').toLowerCase().includes(q)));
+      $('count').textContent = `${all.length} account${all.length === 1 ? '' : 's'}`;
+      $('convertBtn').style.display = all.some(u => u.role === 'seller') ? 'inline-block' : 'none';
+      $('list').innerHTML = rows.length ? `
+        <table class="t" style="min-width:720px"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th></th></tr></thead><tbody>
+        ${rows.map(u => { const wa = waLink(u.phone); const me = u.id === user.id; return `<tr>
+          <td>${esc(u.full_name)}${me ? ' <small>(you)</small>' : ''}</td><td>${esc(u.email)}</td>
+          <td>${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener">${esc(u.phone)}</a>` : esc(u.phone || '—')}</td>
+          <td><span class="status s-${esc(u.role)}">${esc(u.role)}</span></td>
+          <td>${new Date(u.created_at).toLocaleDateString('en-GB')}</td>
+          <td><div class="actions">
+            ${u.role === 'seller' ? `<button class="btn small good" data-buyer="${esc(u.id)}">Make buyer</button>` : ''}
+            ${me ? '' : `<button class="btn small danger" data-del="${esc(u.id)}">Delete</button>`}
+          </div></td></tr>`; }).join('')}</tbody></table>` : '<div class="empty">No users match.</div>';
+
+      document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+        if (!confirm('Delete this user? This cannot be undone.')) return;
+        try { showError(''); await apiSend('DELETE', `/admin/users/${b.dataset.del}`); await load(); } catch (e) { showError(e.message); }
+      });
+      document.querySelectorAll('[data-buyer]').forEach(b => b.onclick = async () => {
+        try { showError(''); await apiSend('PATCH', `/admin/users/${b.dataset.buyer}/role`, { role: 'buyer' }); await load(); } catch (e) { showError(e.message); }
+      });
+    }
+    $('convertBtn').onclick = async () => {
+      if (!confirm('Convert every remaining seller account to buyer? This cannot be undone.')) return;
+      try { showError(''); await apiSend('PATCH', '/admin/users/convert-sellers'); await load(); } catch (e) { showError(e.message); }
+    };
+    async function load() { try { showError(''); all = await apiJson('/admin/users'); render(); } catch (e) { showError(e.message); } }
+    $('q').addEventListener('input', render);
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

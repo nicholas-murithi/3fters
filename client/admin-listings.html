@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Listings 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button></div>
+    <div class="err" id="err"></div>
+
+    <div class="card-head" style="margin-bottom:6px"><div><h1 class="title">Listings</h1><p class="sub" style="margin-bottom:12px">Everything in your shop.</p></div><button class="btn" id="addBtn">+ Add listing</button></div>
+
+    <div class="toolbar">
+      <div class="grow"><input type="search" id="q" placeholder="Search title or category…"></div>
+      <div><select id="st"><option value="all">All statuses</option><option value="available">Available</option><option value="pending">Pending</option><option value="sold">Sold</option></select></div>
+    </div>
+    <div class="card"><div class="table-scroll" id="list"><div class="empty">Loading…</div></div></div>
+
+    <div class="modal" id="modal"><div class="box">
+      <h3>Add new listing</h3>
+      <div class="modal-err" id="mErr"></div>
+      <div class="field"><label>Images (up to 5)</label><input type="file" id="fImages" accept="image/*" multiple></div>
+      <div class="field"><label>Title</label><input type="text" id="fTitle" placeholder="e.g. Nike Sweatpants"></div>
+      <div class="field"><label>Description</label><textarea id="fDesc" rows="3" placeholder="Short description"></textarea></div>
+      <div class="two">
+        <div class="field"><label>Price (KSh)</label><input type="number" id="fPrice" placeholder="1500"></div>
+        <div class="field"><label>Original price (optional)</label><input type="number" id="fOrig" placeholder="e.g. 2000"></div>
+      </div>
+      <div class="field"><label>Size</label><input type="text" id="fSize" placeholder="M / 40"></div>
+      <div class="field"><label>Fit notes (optional)</label><textarea id="fFit" rows="2" placeholder="Runs true to size"></textarea></div>
+      <div class="two">
+        <div class="field"><label>Category</label><select id="fCat">
+          <optgroup label="Trousers"><option value="jeans">Jeans</option><option value="sweatpants">Sweatpants</option><option value="official-pants">Official Pants</option><option value="sporttracks">Sport Tracks</option></optgroup>
+          <optgroup label="Tops"><option value="shirts">Shirts</option><option value="tee">Vintage Tee</option><option value="jacket">Jacket</option></optgroup>
+          <optgroup label="Other Wear"><option value="shorts">Shorts</option><option value="streetwear">Streetwear</option></optgroup>
+          <optgroup label="Footwear"><option value="shoes">Casual Shoes</option><option value="official-shoes">Official Shoes</option><option value="socks">Socks</option></optgroup>
+          <optgroup label="Accessories"><option value="belts">Belts</option><option value="ties">Ties</option><option value="cap">Cap</option><option value="Bags">Bags</option><option value="accessories">Other Accessories</option></optgroup>
+        </select></div>
+        <div class="field"><label>Condition</label><select id="fCond"><option value="new">New</option><option value="like new">Like New</option><option value="good">Good</option><option value="fair">Fair</option></select></div>
+      </div>
+      <div class="two">
+        <div class="field"><label>Gender</label><select id="fGender"><option value="unisex">Unisex</option><option value="men">Gents</option><option value="women">Ladies</option></select></div>
+        <div class="field"><label>Style (optional)</label><select id="fStyle"><option value="">— None —</option><option value="campus">Campus / Comrade Wear</option><option value="corporate">Corporate / Official Wear</option><option value="casual">Casual</option><option value="streetwear">Streetwear</option></select></div>
+      </div>
+      <div class="row-actions" style="margin-top:14px"><button class="btn ghost" id="mCancel" style="flex:1">Cancel</button><button class="btn" id="mSubmit" style="flex:1">Publish</button></div>
+    </div></div>
+
+  <script type="module">
+    import { mountShell, apiJson, apiSend, apiUpload, esc, kes, showError, safeImg } from './js/admin-dashboard.js';
+    mountShell('listings');
+
+    let all = [];
+    const $ = id => document.getElementById(id);
+
+    function render() {
+      const q = $('q').value.trim().toLowerCase(), st = $('st').value;
+      const rows = all.filter(l => (st === 'all' || l.status === st) && (!q || [l.title, l.category].some(v => String(v || '').toLowerCase().includes(q))));
+      $('list').innerHTML = rows.length ? `
+        <table class="t" style="min-width:680px"><thead><tr><th>Image</th><th>Title</th><th>Price</th><th>Category</th><th>Status</th><th>Posted</th><th></th></tr></thead><tbody>
+        ${rows.map(l => { const img = safeImg(l.images?.[0]); return `<tr>
+          <td>${img ? `<img class="thumb" src="${esc(img)}" alt="">` : '<div class="thumb"></div>'}</td>
+          <td>${esc(l.title)}</td><td>${kes(l.price)}${l.original_price ? `<small style="text-decoration:line-through">${kes(l.original_price)}</small>` : ''}</td>
+          <td>${esc(l.category || '—')}</td><td><span class="status s-${esc(l.status)}">${esc(l.status)}</span></td>
+          <td>${new Date(l.created_at).toLocaleDateString('en-GB')}</td>
+          <td><button class="btn small danger" data-del="${esc(l.id)}">Delete</button></td></tr>`; }).join('')}
+        </tbody></table><p style="color:var(--muted);font-size:13px;margin:12px 4px 0">${rows.length} of ${all.length} listings</p>` : '<div class="empty">No listings match.</div>';
+      document.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+        if (!confirm('Delete this listing? This cannot be undone.')) return;
+        try { showError(''); await apiSend('DELETE', `/admin/listings/${b.dataset.del}`); await load(); } catch (e) { showError(e.message); }
+      });
+    }
+    async function load() { try { showError(''); all = await apiJson('/admin/listings'); render(); } catch (e) { showError(e.message); } }
+    $('q').addEventListener('input', render); $('st').addEventListener('change', render);
+
+    // ---- add listing ----
+    const FIELDS = ['fImages', 'fTitle', 'fDesc', 'fPrice', 'fOrig', 'fFit', 'fSize'];
+    const open  = () => $('modal').classList.add('open');
+    const close = () => { $('modal').classList.remove('open'); $('mErr').style.display = 'none'; FIELDS.forEach(id => $(id).value = ''); };
+    const fail  = m => { $('mErr').textContent = m; $('mErr').style.display = 'block'; };
+    $('addBtn').onclick = open; $('mCancel').onclick = close;
+
+    $('mSubmit').onclick = async () => {
+      $('mErr').style.display = 'none';
+      const title = $('fTitle').value.trim(), price = $('fPrice').value, files = [...$('fImages').files];
+      if (!title || !price) return fail('Title and price are required.');
+      if (files.length > 5) return fail('Please choose up to 5 images.');
+      const big = files.filter(f => f.size > 6 * 1024 * 1024);
+      if (big.length) return fail(`${big.length} file(s) exceed 6MB: ${big.map(f => f.name).join(', ')}. Please resize and try again.`);
+      const btn = $('mSubmit'); btn.disabled = true; btn.textContent = 'Publishing…';
+      try {
+        let images = [];
+        if (files.length) { const fd = new FormData(); files.forEach(f => fd.append('images', f)); images = (await apiUpload('/upload', fd)).urls; }
+        await apiSend('POST', '/listings', {
+          title, description: $('fDesc').value.trim(), price, category: $('fCat').value, size: $('fSize').value.trim(),
+          condition: $('fCond').value, images, gender: $('fGender').value, style: $('fStyle').value,
+          original_price: $('fOrig').value || null, fit_notes: $('fFit').value.trim() || null
+        });
+        close(); await load();
+      } catch (e) { fail(e.message); }
+      finally { btn.disabled = false; btn.textContent = 'Publish'; }
+    };
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

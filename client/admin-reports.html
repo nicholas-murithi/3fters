@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Reports 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><div class="spacer"></div></div>
+    <div class="err" id="err"></div>
+
+    <h1 class="title">Reports</h1>
+    <p class="sub">View and download your reports as CSV (opens in Excel / Google Sheets).</p>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head"><h3>Quick reports <small style="font-weight:400;color:var(--muted)">· last 7 days</small></h3></div>
+      <div class="grid g2eq" id="quick"></div>
+    </div>
+
+    <div class="card">
+      <h3>Custom report</h3>
+      <div class="form-row">
+        <div><label for="rType">Report</label>
+          <select id="rType"><option value="sales">Sales report</option><option value="orders">Orders report</option><option value="users">User report</option><option value="listings">Listings report</option></select></div>
+        <div><label for="rFrom">From</label><input type="date" id="rFrom"></div>
+        <div><label for="rTo">To</label><input type="date" id="rTo"></div>
+      </div>
+      <div class="row-actions"><button class="btn" id="gen">Generate report</button><button class="btn ghost" id="dl" style="display:none">Download CSV</button></div>
+      <div id="preview" style="margin-top:18px"></div>
+    </div>
+
+  <script type="module">
+    import { mountShell, api, apiJson, esc, kes, showError, icon } from './js/admin-dashboard.js';
+    mountShell('reports');
+
+    const QUICK = [
+      { type: 'sales',    title: 'Sales report',   ic: 'chart' },
+      { type: 'orders',   title: 'Orders report',  ic: 'box'   },
+      { type: 'users',    title: 'User report',    ic: 'users' },
+      { type: 'listings', title: 'Listings report', ic: 'shop' }
+    ];
+    const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return ymd(d); };
+
+    async function download(type, from, to, btn) {
+      try {
+        showError(''); if (btn) btn.disabled = true;
+        const res = await api(`/admin/stats/report?type=${type}&from=${from}&to=${to}&format=csv`);
+        const url = URL.createObjectURL(await res.blob());
+        const a = Object.assign(document.createElement('a'), { href: url, download: `3fters-${type}-${from}-to-${to}.csv` });
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      } catch (e) { showError(e.message); }
+      finally { if (btn) btn.disabled = false; }
+    }
+
+    document.getElementById('quick').innerHTML = QUICK.map(q => `
+      <button class="rep-card" data-type="${q.type}"><span class="ic">${icon(q.ic)}</span><span><b>${q.title}</b><small>Last 7 days · tap to download</small></span><span class="go">↓</span></button>`).join('');
+    document.querySelectorAll('.rep-card').forEach(b => b.addEventListener('click', () => download(b.dataset.type, daysAgo(6), ymd(new Date()), b)));
+
+    const $from = document.getElementById('rFrom'), $to = document.getElementById('rTo'), $type = document.getElementById('rType');
+    $from.value = daysAgo(29); $to.value = ymd(new Date());
+    let last = null;
+
+    document.getElementById('gen').addEventListener('click', async e => {
+      const btn = e.currentTarget; btn.disabled = true;
+      const p = { type: $type.value, from: $from.value, to: $to.value };
+      try {
+        showError('');
+        const d = await apiJson(`/admin/stats/report?type=${p.type}&from=${p.from}&to=${p.to}`);
+        last = p;
+        document.getElementById('dl').style.display = 'inline-block';
+        const money = c => c.startsWith('Amount') || c.startsWith('Price');
+        document.getElementById('preview').innerHTML = `
+          <p><b>${esc(d.title)}</b> · ${esc(d.from)} to ${esc(d.to)} · ${d.total_rows} row${d.total_rows === 1 ? '' : 's'}${d.total_amount !== null ? ` · total ${kes(d.total_amount)}` : ''}${d.total_rows > 50 ? ' <small>(showing first 50 — download for all)</small>' : ''}</p>
+          ${d.rows.length ? `<div class="table-scroll"><table class="t"><thead><tr>${d.columns.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>
+          ${d.rows.map(r => `<tr>${d.columns.map(c => `<td>${money(c) ? Number(r[c]).toLocaleString() : esc(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '<div class="empty">Nothing in that date range.</div>'}`;
+      } catch (err) { showError(err.message); }
+      finally { btn.disabled = false; }
+    });
+    document.getElementById('dl').addEventListener('click', e => last && download(last.type, last.from, last.to, e.currentTarget));
+  </script>
+  </main>
+</div>
+</body>
+</html>

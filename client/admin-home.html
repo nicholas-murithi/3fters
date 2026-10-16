@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Home 3FTERS Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/admin-dashboard.css"/>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="content">
+    <div class="topbar"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><div class="spacer"></div></div>
+    <div class="err" id="err"></div>
+
+    <h1 class="title"><span id="hello">Hello</span>, <em id="who">Admin</em>!</h1>
+    <p class="sub">Here's what's happening with your shop.</p>
+
+    <div class="notice" id="pendingNotice" style="display:none"></div>
+
+    <div class="grid g4" style="margin-bottom:18px">
+      <div class="card stat"><div class="label">Revenue</div><div class="value" id="sRevenue">—</div><div id="gRevenue"></div></div>
+      <div class="card stat"><div class="label">New users</div><div class="value" id="sUsers">—</div><div id="gUsers"></div></div>
+      <div class="card stat"><div class="label">New orders</div><div class="value" id="sOrders">—</div><div id="gOrders"></div></div>
+      <div class="card stat"><div class="label">Conversion rate</div><div class="value" id="sConv">—</div><div id="gConv"></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head"><h3>Sales overview</h3><select class="pill" id="range"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></div>
+      <div class="chart-box"><canvas id="salesChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Recent orders</h3><a href="admin-orders.html">View all</a></div>
+      <div class="table-scroll" id="recent"></div>
+    </div>
+
+  <script type="module">
+    import { mountShell, apiJson, esc, kes, growth, statusPill, dayLabel, showError, user } from './js/admin-dashboard.js';
+    mountShell('home');
+
+    const h = new Date().getHours();
+    document.getElementById('hello').textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('who').textContent = (user.full_name || 'Admin').split(' ')[0];
+
+    let chart;
+    async function load() {
+      const days = document.getElementById('range').value;
+      try {
+        showError('');
+        const d = await apiJson(`/admin/stats/overview?days=${days}`);
+        const $ = id => document.getElementById(id);
+        $('sRevenue').textContent = kes(d.revenue.value);  $('gRevenue').innerHTML = growth(d.revenue.change) + ' <small>vs previous</small>';
+        $('sUsers').textContent   = d.users.value;         $('gUsers').innerHTML   = growth(d.users.change)   + ' <small>vs previous</small>';
+        $('sOrders').textContent  = d.orders.value;        $('gOrders').innerHTML  = growth(d.orders.change)  + ' <small>vs previous</small>';
+        if (d.conversion) { $('sConv').textContent = d.conversion.value + '%'; $('gConv').innerHTML = growth(d.conversion.delta, ' pts'); }
+        else { $('sConv').textContent = '—'; $('gConv').innerHTML = '<small>No tracking data yet</small>'; }
+
+        const n = $('pendingNotice');
+        if (d.pendingOrders > 0) {
+          n.style.display = 'flex';
+          n.innerHTML = `<span><b>${d.pendingOrders}</b> order${d.pendingOrders === 1 ? '' : 's'} waiting to be confirmed.</span><a href="admin-orders.html?status=pending">Review orders →</a>`;
+        } else n.style.display = 'none';
+
+        const short = d.series.length <= 7;
+        const labels = d.series.map(p => dayLabel(p.day, short));
+        const ctx = $('salesChart').getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 270);
+        grad.addColorStop(0, 'rgba(139,94,60,.45)'); grad.addColorStop(1, 'rgba(203,161,90,.03)');
+        chart?.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets: [{ data: d.series.map(p => p.revenue), borderColor: '#5a3a22', backgroundColor: grad, fill: true, tension: .4, pointRadius: d.series.length > 31 ? 0 : 3, pointBackgroundColor: '#5a3a22' }] },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => kes(c.parsed.y) } } },
+                     scales: { y: { beginAtZero: true, ticks: { callback: v => v >= 1000 ? v / 1000 + 'k' : v } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } } } }
+        });
+
+        $('recent').innerHTML = d.recentOrders.length ? `
+          <table class="t"><thead><tr><th>Customer</th><th>Product</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+          ${d.recentOrders.map(o => `<tr><td>${esc(o.buyer_name || '—')}</td><td>${esc(o.title || '—')}</td><td>${kes(o.amount)}</td><td>${statusPill(o.status)}</td></tr>`).join('')}
+          </tbody></table>` : '<div class="empty">No orders yet.</div>';
+      } catch (e) { showError(e.message); }
+    }
+    document.getElementById('range').addEventListener('change', load);
+    load();
+  </script>
+  </main>
+</div>
+</body>
+</html>

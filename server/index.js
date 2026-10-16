@@ -23,6 +23,7 @@ app.use('/api/orders',   orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/upload',   uploadRoutes);
 app.use('/api/admin',    adminRoutes);
+app.use('/api/admin/stats', require('./routes/adminStats')); // dashboard data (admin-only)
 app.use('/api/reviews',  reviewRoutes);
 app.use('/api/chat',     chatRoutes);
 app.use('/api/analytics', require('./routes/analytics'));
